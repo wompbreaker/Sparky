@@ -1,0 +1,9 @@
+git+https://github.com/rapptz/discord.py
+aiomysql~=0.2.0
+python-dotenv~=1.0.1
+pytz~=2024.1
+
+asyncio~=3.4.3
+requests~=2.31.0
+git+https://github.com/Rapptz/discord-ext-menus@fbb8803779373357e274e1540b368365fd9d8074
+aiohttp~=3.9.3

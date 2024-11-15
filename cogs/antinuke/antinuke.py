@@ -9,6 +9,7 @@ from typing import Optional, List
 import aiomysql
 from helpers import (
     Emojis,
+    Context,
     make_embed_error, 
     make_embed_warning, 
     make_embed_success,
@@ -16,7 +17,7 @@ from helpers import (
 )
 import logging
 from .decorators import *
-from .helpers import *
+from .helper import *
 from .views import ConfirmView
 from .db import *
 
@@ -160,7 +161,7 @@ class Antinuke(commands.Cog):
             usage='Syntax: /antinuke (subcommand) <args>\nExample: /antinuke ban on --do ban',
             extras={'permissions': ['Server Owner']}
     )
-    async def antinuke(self, ctx: commands.Context):
+    async def antinuke(self, ctx: Context):
         """Antinuke to protect your server. Run as a slash command."""
         await ctx.send_help(self.antinuke)
 
@@ -169,7 +170,7 @@ class Antinuke(commands.Cog):
         usage='Syntax: /antinuke admin (member)',
         extras={'permissions': ['Server Owner'], 'parameters': ['member']}
     )
-    async def antinuke_admin(self, ctx: commands.Context):
+    async def antinuke_admin(self, ctx: Context):
         """Give a user permissions to edit antinuke settings. Run as a slash command."""
         await ctx.send_help(self.antinuke_admin)
 
@@ -178,7 +179,7 @@ class Antinuke(commands.Cog):
         usage='Syntax: /antinuke ban (on or off) <params>\nExample: /antinuke ban on --do ban',
         extras={'permissions': ['Server Owner'], 'parameters': ['status', 'parameters']}
     )
-    async def antinuke_ban(self, ctx: commands.Context):
+    async def antinuke_ban(self, ctx: Context):
         """Prevent mass member ban. Run as a slash command."""
         await ctx.send_help(self.antinuke_ban)
 
@@ -188,7 +189,7 @@ class Antinuke(commands.Cog):
         usage='Syntax: /antinuke config',
         extras={'permissions': ['Server Owner']}
     )
-    async def antinuke_config(self, ctx: commands.Context):
+    async def antinuke_config(self, ctx: Context):
         """View server configuration for Antinuke. Run as a slash command."""
         await ctx.send_help(self.antinuke_config)
 
@@ -198,7 +199,7 @@ class Antinuke(commands.Cog):
         usage='Syntax: /antinuke permissions (grant or remove) (permission name)\nExample: /antinuke permissions grant administrator',
         extras={'permissions': ['Server Owner'], 'parameters': ['typee', 'permission', 'flags']}
     )
-    async def antinuke_permissions(self, ctx: commands.Context):
+    async def antinuke_permissions(self, ctx: Context):
         """Watch dangerous permissions being granted or removed. Run as a slash command."""
         await ctx.send_help(self.antinuke_permissions)
 
@@ -207,7 +208,7 @@ class Antinuke(commands.Cog):
         usage='Syntax: /antinuke webhook (on or off) <params>\nExample: /antinuke webhook on --do ban --threshold 3',
         extras={'permissions': ['Server Owner'], 'parameters': ['status', 'parameters']}
     )
-    async def antinuke_webhook(self, ctx: commands.Context):
+    async def antinuke_webhook(self, ctx: Context):
         """Prevent mass webhook creation. Run as a slash command."""
         await ctx.send_help(self.antinuke_webhook)
 
@@ -216,7 +217,7 @@ class Antinuke(commands.Cog):
         usage='Syntax: /antinuke whitelist (member or bot id)\nExample: /antinuke whitelist 1224358430404513792',
         extras={'permissions': ['Server Owner'], 'parameters': ['member']}
     )
-    async def antinuke_whitelist(self, ctx: commands.Context):
+    async def antinuke_whitelist(self, ctx: Context):
         """Whitelist a member from triggering antinuke or a bot to join. Run as a slash command."""
         await ctx.send_help(self.antinuke_whitelist)
 
@@ -225,7 +226,7 @@ class Antinuke(commands.Cog):
         usage='Syntax: /antinuke botadd (on or off)\nExample: /antinuke botadd on',
         extras={'permissions': ['Server Owner'], 'parameters': ['status']}
     )
-    async def antinuke_botadd(self, ctx: commands.Context):
+    async def antinuke_botadd(self, ctx: Context):
         """Prevent new bots from joining the server. Run as a slash command."""
         await ctx.send_help(self.antinuke_botadd)
 
@@ -235,7 +236,7 @@ class Antinuke(commands.Cog):
         usage='Syntax: /antinuke vanity (on or off) <params>\nExample: /antinuke vanity on --do ban',
         extras={'permissions': ['Server Owner'], 'parameters': ['status', 'parameters']}
     )
-    async def antinuke_vanity(self, ctx: commands.Context):
+    async def antinuke_vanity(self, ctx: Context):
         """Punish users who change the server vanity URL. Run as a slash command."""
         await ctx.send_help(self.antinuke_vanity)
 
@@ -244,7 +245,7 @@ class Antinuke(commands.Cog):
         usage='Syntax: /antinuke channel (on or off) <params>\nExample: /antinuke channel on --do ban --threshold 5',
         extras={'permissions': ['Server Owner'], 'parameters': ['status', 'parameters']}
     )
-    async def antinuke_channel(self, ctx: commands.Context):
+    async def antinuke_channel(self, ctx: Context):
         """Prevent mass channel creation or deletion. Run as a slash command."""
         await ctx.send_help(self.antinuke_channel)
 
@@ -253,7 +254,7 @@ class Antinuke(commands.Cog):
         usage='Syntax: /antinuke list',
         extras={'permissions': ['Server Owner']}
     )
-    async def antinuke_list(self, ctx: commands.Context):
+    async def antinuke_list(self, ctx: Context):
         """View all enabled modules along with whitelisted members and bots. Run as a slash command."""
         await ctx.send_help(self.antinuke_list)
 
@@ -262,7 +263,7 @@ class Antinuke(commands.Cog):
         usage='Syntax: /antinuke emoji (on or off) <params>\nExample: /antinuke emoji on --do kick --threshold 5',
         extras={'permissions': ['Server Owner'], 'parameters': ['status', 'parameters']}
     )
-    async def antinuke_emoji(self, ctx: commands.Context):
+    async def antinuke_emoji(self, ctx: Context):
         """Prevent mass emoji deletion. Run as a slash command."""
         await ctx.send_help(self.antinuke_emoji)
 
@@ -271,7 +272,7 @@ class Antinuke(commands.Cog):
         usage='Syntax: /antinuke admins',
         extras={'permissions': ['manage guild']}
     )
-    async def antinuke_admins(self, ctx: commands.Context):
+    async def antinuke_admins(self, ctx: Context):
         """View antinuke admins for the server. Run as a slash command."""
         await ctx.send_help(self.antinuke_admins)
 
@@ -280,7 +281,7 @@ class Antinuke(commands.Cog):
         usage='Syntax: /antinuke kick (on or off) <params>\nExample: /antinuke kick on --do stripstaff --threshold 3',
         extras={'permissions': ['Server Owner'], 'parameters': ['status', 'parameters']}
     )
-    async def antinuke_kick(self, ctx: commands.Context):
+    async def antinuke_kick(self, ctx: Context):
         """Prevent mass member kick. Run as a slash command."""
         await ctx.send_help(self.antinuke_kick)
 
@@ -289,7 +290,7 @@ class Antinuke(commands.Cog):
         usage='Syntax: /antinuke role (on or off) <params>\nExample: /antinuke role on --do ban --threshold 3',
         extras={'permissions': ['Server Owner'], 'parameters': ['status', 'parameters']}
     )
-    async def antinuke_role(self, ctx: commands.Context):
+    async def antinuke_role(self, ctx: Context):
         """Prevent mass role deletion. Run as a slash command."""
         await ctx.send_help(self.antinuke_role)
 

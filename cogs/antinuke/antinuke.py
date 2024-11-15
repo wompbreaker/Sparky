@@ -5,9 +5,8 @@ from discord.ext import commands
 from discord import app_commands
 from bot import Sparky
 from discord.app_commands import Choice, Group
-from typing import Literal, Optional, List, Tuple, Dict
+from typing import Optional, List
 import aiomysql
-from datetime import datetime
 from helpers import (
     Emojis,
     make_embed_error, 
@@ -19,6 +18,7 @@ import logging
 from .decorators import *
 from .helpers import *
 from .views import ConfirmView
+from .db import *
 
 logger = logging.getLogger(__name__)
 
@@ -30,42 +30,19 @@ perm_list = [
 
 WARNING = Emojis().get_emoji('warning')
 
-def get_user_id_from_reason(reason: str) -> int:
-    """Get the user id from the reason string. Used to check if the mod is abusing bot commands"""
-    i = 0
-    user_id = ""
-    while len(reason) > 0:
-        if reason[i] != "(":
-            i += 1
-        else:
-            i += 1
-            while reason[i] != ")":
-                user_id += reason[i]
-                i += 1
-            return int(user_id)
-
 class Antinuke(commands.Cog):
     """Antinuke to protect your server"""
 
     def __init__(self, bot: Sparky):
         try:
             self.bot: Sparky = bot
-            self.channel_threshold = 5
-            self.channel_time_frame = 30
-            self.ban_threshold = 3
-            self.ban_time_frame = 10
-            self.punishment_done: Dict[int, bool] = {}
-            self.moderator_channel_creations: Dict[int, List[Tuple[discord.abc.GuildChannel, datetime]]] = {}
-            self.moderator_channel_deletions: Dict[int, List[Tuple[discord.abc.GuildChannel, datetime]]] = {}
-            self.moderator_member_bans: Dict[int, List[Tuple[discord.Member | discord.User, datetime]]] = {}
-            self.moderator_member_kicks: Dict[int, List[Tuple[discord.Member, datetime]]] = {}
             logger.info(f"{self.qualified_name} initialized successfully!")
         except Exception as e:
             logger.error(f"ERROR: Failed to initialize {self.qualified_name}: {e}")
 
     @property
     def display_emoji(self) -> discord.PartialEmoji:
-        return discord.PartialEmoji(name='\N{SHIELD}')
+        return Emojis().get_emoji('shield')
 
     async def cog_app_command_error(self, interaction: discord.Interaction, error: app_commands.AppCommandError):
         if isinstance(error, AntinukeFailure):
@@ -125,10 +102,10 @@ class Antinuke(commands.Cog):
     @commands.Cog.listener()
     async def on_member_join(self, member: discord.Member):
         try:
-            botadd_enabled = await self.get_botadd_settings(member.guild.id)
+            botadd_enabled = await get_botadd_settings(member.guild.id)
             if botadd_enabled and member.bot:
                 # Check if the bot is whitelisted
-                whitelisted = await self.is_whitelisted(member.id)
+                whitelisted = await is_whitelisted(member.id)
                 if not whitelisted:
                     await member.kick(reason="Botadd antinuke enabled")
         except Exception as e:
@@ -140,14 +117,14 @@ class Antinuke(commands.Cog):
             if guild_before.vanity_url != guild_after.vanity_url:
                 async for entry in guild_after.audit_logs(action=discord.AuditLogAction.guild_update, limit=3):
                     moderator = entry.user
-                enabled, punishment = await self.get_vanity_settings(guild_after.id)
-                is_whitelisted = await self.is_whitelisted(moderator.id)
+                enabled, punishment = await get_vanity_settings(guild_after.id)
+                is_whitelisted = await is_whitelisted(moderator.id)
                 if is_whitelisted:
                     return
                 if enabled:
                     await self.punish_moderator(moderator, punishment, "changing the server vanity")
                     embed = self.make_embed_vanity_alert(moderator, guild_before, guild_before.vanity_url, guild_after.vanity_url)
-                    antinuke_admins = await self.get_antinuke_admins(guild_after.id)
+                    antinuke_admins = await get_antinuke_admins(guild_after.id)
                     owner_dm = await guild_after.owner.create_dm()
                     try:
                         await owner_dm.send(embed=embed)
@@ -321,7 +298,6 @@ class Antinuke(commands.Cog):
     #######################################################################################################
     antinuke_group = Group(name='antinuke', description='Antinuke settings for a server')
 
-    # done
     @antinuke_group.command(name='botadd', description='Enable or disable adding bots to your guild')
     @app_commands.choices(option=[
         Choice(name='on', value=True),
@@ -332,7 +308,7 @@ class Antinuke(commands.Cog):
     async def botadd(self, interaction: discord.Interaction, option: Choice[int]):
         """Enables/disables the bot add antinuke option"""
         try:
-            enabled = await self.get_botadd_settings(interaction.guild.id)
+            enabled = await get_botadd_settings(interaction.guild.id)
             if enabled is None:
                 await interaction.response.send_message("get botadd settings is none")
                 return
@@ -347,7 +323,7 @@ class Antinuke(commands.Cog):
                 await interaction.response.send_message(embed=embed)
                 return
             
-            val = await self.set_antinuke_setting(interaction.guild.id, 'botadd', option.value)
+            val = await set_antinuke_setting(interaction.guild.id, 'botadd', option.value)
             if val:
                 if option.value:
                     opt_str = "Enabled"
@@ -367,13 +343,12 @@ class Antinuke(commands.Cog):
             await interaction.response.send_message(embed=embed, ephemeral=True)
             return
 
-    # done
     @antinuke_group.command(name='admin')
     @is_guild_owner()
     @commands.guild_only()
     async def admin(self, interaction: discord.Interaction, member: discord.Member):
         """Give a user permissions to edit antinuke settings"""
-        antinuke_admins = await self.get_antinuke_admins(interaction.guild.id)
+        antinuke_admins = await get_antinuke_admins(interaction.guild.id)
         is_admin = await self.is_antinuke_admin(interaction.guild.id, member.id)
 
         if is_admin and str(member.id) in antinuke_admins:
@@ -382,7 +357,7 @@ class Antinuke(commands.Cog):
         else:
             antinuke_admins.append(str(member.id))
             message = f"**{member}** is now an **antinuke admin** and can edit **antinuke settings**."
-        val = await self.set_antinuke_setting(interaction.guild.id, 'admins', json.dumps(antinuke_admins))
+        val = await set_antinuke_setting(interaction.guild.id, 'admins', json.dumps(antinuke_admins))
         if val:
             embed = make_embed_success(interaction.user, message)
             await interaction.response.send_message(embed=embed)
@@ -391,7 +366,6 @@ class Antinuke(commands.Cog):
             embed = make_embed_error(interaction.user, message)
             await interaction.response.send_message(embed=embed)
 
-    # done
     @antinuke_group.command(name='webhook')
     @app_commands.choices(option=[
         Choice(name='on', value=True),
@@ -409,7 +383,7 @@ class Antinuke(commands.Cog):
         """Prevent mass webhook creation"""
 
         try:
-            ret = await self.get_antinuke_parameters(interaction.guild.id, 'webhook')
+            ret = await get_antinuke_parameters(interaction.guild.id, 'webhook')
         except Exception as e:
             logger.error(f"{type(e)} error in antinuke webhook: {e}")
             message = f"{type(e)} Error: {e} "
@@ -479,7 +453,7 @@ class Antinuke(commands.Cog):
                 new_threshold = threshold_db
                 new_punishment = punishment_db
 
-        val = await self.set_antinuke_parameters(interaction.guild.id, 'webhook', option.value, new_threshold, new_punishment)
+        val = await set_antinuke_parameters(interaction.guild.id, 'webhook', option.value, new_threshold, new_punishment)
         if val:
             await interaction.response.send_message(embed=embed)
         else:
@@ -487,7 +461,6 @@ class Antinuke(commands.Cog):
             embed = make_embed_error(interaction.user, message)
             await interaction.response.send_message(embed=embed)
 
-    # done
     @antinuke_group.command(name='channel')
     @app_commands.choices(option=[
         Choice(name='on', value=True),
@@ -505,7 +478,7 @@ class Antinuke(commands.Cog):
         """Prevent mass channel create and delete"""
 
         try:
-            ret = await self.get_antinuke_parameters(interaction.guild.id, 'channel')
+            ret = await get_antinuke_parameters(interaction.guild.id, 'channel')
         except Exception as e:
             logger.error(f"{type(e)} error in antinuke channel: {e}")
             message = f"{type(e)} Error: {e} "
@@ -570,7 +543,7 @@ class Antinuke(commands.Cog):
                 new_threshold = threshold_db
                 new_punishment = punishment_db
 
-        val = await self.set_antinuke_parameters(interaction.guild.id, 'channel', option.value, new_threshold, new_punishment)
+        val = await set_antinuke_parameters(interaction.guild.id, 'channel', option.value, new_threshold, new_punishment)
         if val:
             await interaction.response.send_message(embed=embed)
         else:
@@ -578,7 +551,6 @@ class Antinuke(commands.Cog):
             embed = make_embed_error(interaction.user, message)
             await interaction.response.send_message(embed=embed)
 
-    # done
     @antinuke_group.command(name='vanity')
     @app_commands.choices(option=[
         Choice(name='on', value=True),
@@ -596,7 +568,7 @@ class Antinuke(commands.Cog):
         """Punish users that change the server vanity"""
 
         try:
-            ret = await self.get_vanity_settings(interaction.guild.id)
+            ret = await get_vanity_settings(interaction.guild.id)
         except Exception as e:
             logger.error(f"{type(e)} error in antinuke vanity: {e}")
             message = f"{type(e)} Error: {e} "
@@ -648,7 +620,7 @@ class Antinuke(commands.Cog):
                 embed = make_embed_success(interaction.user, message)
                 new_punishment = punishment_db
 
-        val = await self.set_vanity_settings(interaction.guild.id, option.value, new_punishment)
+        val = await set_vanity_settings(interaction.guild.id, option.value, new_punishment)
         if val:
             await interaction.response.send_message(embed=embed)
         else:
@@ -656,14 +628,13 @@ class Antinuke(commands.Cog):
             embed = make_embed_error(interaction.user, message)
             await interaction.response.send_message(embed=embed)
 
-    # done
     @antinuke_group.command(name='admins')
     @commands.has_permissions(manage_guild=True)
     @commands.guild_only()
     async def admins(self, interaction: discord.Interaction):
         """View all antinuke admins"""
         try:
-            antinuke_admins = await self.get_antinuke_admins(interaction.guild.id)
+            antinuke_admins = await get_antinuke_admins(interaction.guild.id)
             embed = await self.make_embed_antinuke_admins(interaction.user, antinuke_admins)
             await interaction.response.send_message(embed=embed)
         except Exception as e:
@@ -672,7 +643,6 @@ class Antinuke(commands.Cog):
             embed = make_embed_error(interaction.user, message)
             await interaction.response.send_message(embed=embed)
 
-    # done
     @antinuke_group.command(name='emoji')
     @app_commands.choices(option=[
         Choice(name='on', value=True),
@@ -690,7 +660,7 @@ class Antinuke(commands.Cog):
         """Prevent mass emoji delete"""
 
         try:
-            ret = await self.get_antinuke_parameters(interaction.guild.id, 'emoji')
+            ret = await get_antinuke_parameters(interaction.guild.id, 'emoji')
         except Exception as e:
             logger.error(f"{type(e)} error in antinuke emoji: {e}")
             message = f"{type(e)} Error: {e} "
@@ -757,7 +727,7 @@ class Antinuke(commands.Cog):
                 new_threshold = threshold_db
                 new_punishment = punishment_db
 
-        val = await self.set_antinuke_parameters(interaction.guild.id, 'emoji', option.value, new_threshold, new_punishment)
+        val = await set_antinuke_parameters(interaction.guild.id, 'emoji', option.value, new_threshold, new_punishment)
         if val:
             await interaction.response.send_message(embed=embed)
         else:
@@ -793,7 +763,7 @@ class Antinuke(commands.Cog):
                 view.response = out
                 return
             
-            ret = await self.get_perms_settings(interaction.guild.id)
+            ret = await get_permissions_settings(interaction.guild.id)
             if ret is None:
                 await interaction.response.send_message("get perms settings is none")
                 return
@@ -842,8 +812,8 @@ class Antinuke(commands.Cog):
 
         await interaction.response.defer()
         try:
-            vanity_enabled, vanity_punishment = await self.get_vanity_settings(interaction.guild.id)
-            botadd_enabled = await self.get_botadd_settings(interaction.guild.id)
+            vanity_enabled, vanity_punishment = await get_vanity_settings(interaction.guild.id)
+            botadd_enabled = await get_botadd_settings(interaction.guild.id)
             await interaction.followup.send(f"Botadd enabled: **{botadd_enabled}**\nVanity settings: enabled **{vanity_enabled}**, punishment: **{get_punishment(vanity_punishment)}**")
         except Exception as e:
             logger.error(f"{type(e)} error in antinuke list: {e}")
@@ -851,7 +821,6 @@ class Antinuke(commands.Cog):
             embed = make_embed_error(interaction.user, message)
             await interaction.followup.send(embed=embed)
 
-    # done
     @antinuke_group.command(name='ban')
     @app_commands.choices(option=[
         Choice(name='on', value=True),
@@ -869,7 +838,7 @@ class Antinuke(commands.Cog):
         """Prevent mass member ban"""
 
         try:
-            ret = await self.get_antinuke_parameters(interaction.guild.id, 'ban')
+            ret = await get_antinuke_parameters(interaction.guild.id, 'ban')
         except Exception as e:
             logger.error(f"{type(e)} error in antinuke ban: {e}")
             message = f"{type(e)} Error: {e} "
@@ -936,7 +905,7 @@ class Antinuke(commands.Cog):
                 new_threshold = threshold_db
                 new_punishment = punishment_db
 
-        val = await self.set_antinuke_parameters(interaction.guild.id, 'ban', option.value, new_threshold, new_punishment)
+        val = await set_antinuke_parameters(interaction.guild.id, 'ban', option.value, new_threshold, new_punishment)
         if val:
             await interaction.response.send_message(embed=embed)
         else:
@@ -944,7 +913,6 @@ class Antinuke(commands.Cog):
             embed = make_embed_error(interaction.user, message)
             await interaction.response.send_message(embed=embed)
 
-    # done
     @antinuke_group.command(name='kick')
     @app_commands.choices(option=[
         Choice(name='on', value=True),
@@ -962,7 +930,7 @@ class Antinuke(commands.Cog):
         """Prevent mass member kick"""
 
         try:
-            ret = await self.get_antinuke_parameters(interaction.guild.id, 'kick')
+            ret = await get_antinuke_parameters(interaction.guild.id, 'kick')
         except Exception as e:
             logger.error(f"{type(e)} error in antinuke kick: {e}")
             message = f"{type(e)} Error: {e} "
@@ -1029,7 +997,7 @@ class Antinuke(commands.Cog):
                 new_threshold = threshold_db
                 new_punishment = punishment_db
 
-        val = await self.set_antinuke_parameters(interaction.guild.id, 'kick', option.value, new_threshold, new_punishment)
+        val = await set_antinuke_parameters(interaction.guild.id, 'kick', option.value, new_threshold, new_punishment)
         if val:
             await interaction.response.send_message(embed=embed)
         else:
@@ -1037,7 +1005,6 @@ class Antinuke(commands.Cog):
             embed = make_embed_error(interaction.user, message)
             await interaction.response.send_message(embed=embed)
 
-    # done
     @antinuke_group.command(name='role')
     @app_commands.choices(option=[
         Choice(name='on', value=True),
@@ -1055,7 +1022,7 @@ class Antinuke(commands.Cog):
         """Prevent mass role delete"""
 
         try:
-            ret = await self.get_antinuke_parameters(interaction.guild.id, 'role')
+            ret = await get_antinuke_parameters(interaction.guild.id, 'role')
         except Exception as e:
             logger.error(f"{type(e)} error in antinuke role: {e}")
             message = f"{type(e)} Error: {e} "
@@ -1123,7 +1090,7 @@ class Antinuke(commands.Cog):
                 new_threshold = threshold_db
                 new_punishment = punishment_db
 
-        val = await self.set_antinuke_parameters(interaction.guild.id, 'role', option.value, new_threshold, new_punishment)
+        val = await set_antinuke_parameters(interaction.guild.id, 'role', option.value, new_threshold, new_punishment)
         if val:
             await interaction.response.send_message(embed=embed)
         else:
@@ -1131,27 +1098,26 @@ class Antinuke(commands.Cog):
             embed = make_embed_error(interaction.user, message)
             await interaction.response.send_message(embed=embed)
 
-    # done
     @antinuke_group.command(name='config')
     @commands.has_permissions(manage_guild=True)
     @commands.guild_only()
     async def config(self, interaction: discord.Interaction):
         """View server configuration for Antinuke"""
-        role_enabled, _, _ = await self.get_antinuke_parameters(interaction.guild.id, 'role')
-        webhook_enabled, _, _ = await self.get_antinuke_parameters(interaction.guild.id, 'webhook')
-        emoji_enabled, _, _ = await self.get_antinuke_parameters(interaction.guild.id, 'emoji')
-        vanity_enabled, _ = await self.get_vanity_settings(interaction.guild.id)
-        channel_enabled, _, _ = await self.get_antinuke_parameters(interaction.guild.id, 'channel')
-        kick_enabled, _, _ = await self.get_antinuke_parameters(interaction.guild.id, 'kick')
-        ban_enabled, _, _ = await self.get_antinuke_parameters(interaction.guild.id, 'ban')
-        admins = await self.get_antinuke_admins(interaction.guild.id)
+        role_enabled, _, _ = await get_antinuke_parameters(interaction.guild.id, 'role')
+        webhook_enabled, _, _ = await get_antinuke_parameters(interaction.guild.id, 'webhook')
+        emoji_enabled, _, _ = await get_antinuke_parameters(interaction.guild.id, 'emoji')
+        vanity_enabled, _ = await get_vanity_settings(interaction.guild.id)
+        channel_enabled, _, _ = await get_antinuke_parameters(interaction.guild.id, 'channel')
+        kick_enabled, _, _ = await get_antinuke_parameters(interaction.guild.id, 'kick')
+        ban_enabled, _, _ = await get_antinuke_parameters(interaction.guild.id, 'ban')
+        admins = await get_antinuke_admins(interaction.guild.id)
         admin_count = len(admins)
         whitelisted_humans, whitelisted_bots = [], []
         module_count = 5
-        _, grant, remove, _  = await self.get_permissions_settings(interaction.guild.id)
+        _, grant, remove, _  = await get_permissions_settings(interaction.guild.id)
         grant_len = len(grant)
         remove_len = len(remove)
-        botadd_enabled = await self.get_botadd_settings(interaction.guild.id)
+        botadd_enabled = await get_botadd_settings(interaction.guild.id)
         
         def checked(value: bool) -> str:
             check = Emojis().get_emoji('approve')
@@ -1189,13 +1155,13 @@ class Antinuke(commands.Cog):
     async def whitelist(self, interaction: discord.Interaction, user: discord.User):
         """Whitelist a member from triggering antinuke or a bot to join"""
         try:
-            is_whitelisted = await self.is_whitelisted(interaction.guild.id, user.id)
+            is_whitelisted = await is_whitelisted(interaction.guild.id, user.id)
         except Exception as e:
             logger.error(f"Error in whitelist: {e}")
             embed = make_embed_error(interaction.user, f"Error in whitelist: {e}")
             await interaction.response.send_message(embed=embed)
             return
-        whitelist = await self.get_whitelist(interaction.guild.id)
+        whitelist = await get_whitelist(interaction.guild.id)
         if is_whitelisted and str(user.id) in whitelist:
             whitelist.remove(str(user.id))
             if user.bot:
@@ -1208,7 +1174,7 @@ class Antinuke(commands.Cog):
                 message = f"**{user}** is now whitelisted and can join"
             else:
                 message = f"**{user}** is now whitelisted and will not trigger **antinuke**"
-        val = await self.set_antinuke_setting(interaction.guild.id, 'whitelist', json.dumps(whitelist))
+        val = await set_antinuke_setting(interaction.guild.id, 'whitelist', json.dumps(whitelist))
         if val:
             embed = make_embed_success(interaction.user, message)
             await interaction.response.send_message(embed=embed)
@@ -1245,7 +1211,7 @@ class Antinuke(commands.Cog):
 
     async def punish_moderator(self, member: discord.Member, punishment: int, reason: str):
         punishment = get_punishment(int(punishment))
-        whitelisted = await self.is_whitelisted(member.guild, member)
+        whitelisted = await is_whitelisted(member.guild, member)
         if whitelisted or member == member.guild.me or member == member.guild.owner:
             return
         if punishment == 'none':
@@ -1363,442 +1329,3 @@ class Antinuke(commands.Cog):
             await jail_channel.send(f"{member.mention} You have been jailed for **{reason}**")
         except Exception as e:
             logger.error(f"Error in {self.qualified_name} jail_member: {e}")
-
-    
-    #######################################################################################################
-    #                                           GETTERS                                                   #
-    #######################################################################################################
-        
-    async def get_antinuke_setting(
-        self, 
-        guild_id: int, 
-        setting: str
-    ) -> Optional[str]:
-        """Get Antinuke setting from the database
-        
-        Parameters
-        -----------
-        guild_id: int
-            The guild ID
-
-        setting: str
-            The setting to get from the database
-
-        Returns
-        -------
-        Optional[str]
-            The setting value
-        """
-        try:
-            async with self.bot.pool.acquire() as conn:
-                async with conn.cursor(aiomysql.DictCursor) as cur:
-                    await cur.execute(
-                        f"SELECT * FROM antinuke_system WHERE guild_id = %s;",
-                        (guild_id,)
-                    )
-                    result = await cur.fetchone()
-                    return result[setting] if result else None
-        except Exception as e:
-            logger.error(f"Failed to get Antinuke setting: {e}")
-            raise e
-        
-    async def get_antinuke_admins(
-        self, 
-        guild_id: int
-    ) -> Optional[List[int]]:
-        """Get Antinuke admins from the database
-        
-        Parameters
-        -----------
-        guild_id: int
-            The guild ID
-
-        Returns
-        -------
-        List[int]
-            A list of Antinuke admin IDs
-        """
-        try:
-            admins_json = await self.get_antinuke_setting(guild_id, 'admins')
-        except Exception as e:
-            logger.error(f"Failed to get Antinuke admins: {e}")
-            raise e
-        
-        if admins_json is not None:
-            return json.loads(admins_json)
-        return []
-    
-    async def is_antinuke_admin(
-        self, 
-        guild_id: int, 
-        user_id: int
-    ) -> bool:
-        """Check if a user is an Antinuke admin
-        
-        Parameters
-        -----------
-        guild_id: int
-            The guild ID
-
-        user_id: int
-            The user ID
-
-        Returns
-        -------
-        bool
-            True if the user is an Antinuke admin, False otherwise
-        """
-        admins = await self.get_antinuke_admins(guild_id)
-        if user_id in admins:
-            return True
-        return False
-        
-    async def get_whitelist(
-        self, 
-        guild_id: int
-    ) -> Optional[List[int]]:
-        """Get whitelisted members from the database
-        
-        Parameters
-        -----------
-        guild_id: int
-            The guild ID
-
-        Returns
-        -------
-        List[int]
-            A list of whitelisted members
-        """
-        try:
-            whitelist_json = await self.get_antinuke_setting(guild_id, 'whitelist')
-        except Exception as e:
-            logger.error(f"Failed to get Antinuke whitelist: {e}")
-            raise e
-        if whitelist_json is not None:
-            return json.loads(whitelist_json)
-        return []
-    
-    async def is_whitelisted(
-        self, 
-        guild_id: int, 
-        user_id: int
-    ) -> bool:
-        """Check if a user is whitelisted
-        
-        Parameters
-        -----------
-        guild_id: int
-            The guild ID
-
-        user_id: int
-            The user ID
-
-        Returns
-        -------
-        bool
-            True if the user is whitelisted, False otherwise
-        """
-        whitelist = await self.get_whitelist(guild_id)
-        if str(user_id) in whitelist:
-            return True
-        return False
-
-    async def get_botadd_settings(
-        self, 
-        guild_id: int
-    ) -> bool:
-        """Get botadd settings from the database
-        
-        Parameters
-        -----------
-        guild_id: int
-            The guild ID
-
-        Returns
-        -------
-        bool
-            True if botadd is enabled, False otherwise
-        """
-        try:
-            botadd = await self.get_antinuke_setting(guild_id, 'botadd')
-            return True if botadd == 1 else False
-        except Exception as e:
-            logger.error(f"Failed to get botadd settings: {e}")
-            raise e
-    
-    async def get_vanity_settings(
-        self, 
-        guild_id: int
-    ) -> Tuple[bool, int]:
-        """Get vanity settings from the database
-        
-        Parameters
-        -----------
-        guild_id: int
-            The guild ID
-
-        Returns
-        -------
-        Tuple[bool, int]
-            enabled, punishment
-        """
-        try:
-            vanity_json = await self.get_antinuke_setting(guild_id, 'vanity')
-            vanity = json.loads(vanity_json)
-            enabled = True if vanity['enabled'] == 1 else False
-            punishment = vanity['punishment']
-            return enabled, punishment
-        except Exception as e:
-            logger.error(f"Failed to get vanity settings: {e}")
-            raise e
-        
-    async def get_antinuke_parameters(
-        self, 
-        guild_id: int, 
-        setting: Literal['webhook', 'channel', 'emoji', 'ban', 'kick', 'role']
-    ) -> Tuple[bool, int, int]:
-        """Get Antinuke settings from the database
-        
-        Parameters
-        -----------
-        guild_id: int
-            The guild ID
-
-        setting: str
-            The setting to get
-
-        Returns
-        -------
-        Tuple[bool, int, int]
-            enabled, threshold, punishment
-        """
-        try:
-            result = await self.get_antinuke_setting(guild_id, setting)
-            result = json.loads(result)
-            enabled = True if result['enabled'] == 1 else False
-            punishment = result['punishment']
-            threshold = result['threshold']
-            return enabled, threshold, punishment
-        except Exception as e:
-            logger.error(f"Failed to get Antinuke settings: {e}")
-            raise e
-        
-        
-    async def get_permissions_settings(
-        self, 
-        guild_id: int
-    ) -> Tuple[bool, List[str], List[str], int]:
-        """Get permissions settings from the database
-        
-        Parameters
-        -----------
-        guild_id: int
-            The guild ID
-
-        Returns
-        -------
-        Tuple[bool, List[str], List[str], int]
-            enabled, grant, remove, punishment
-        """
-        try:
-            permissions_json = await self.get_antinuke_setting(guild_id, 'perms')
-            permissions = json.loads(permissions_json)
-            enabled = True if permissions['enabled'] == 1 else False
-            grant = permissions['grant']
-            remove = permissions['remove']
-            punishment = permissions['punishment']
-            return enabled, grant, remove, punishment
-        except Exception as e:
-            logger.error(f"Failed to get permissions settings: {e}")
-            raise e
-        
-    #######################################################################################################
-    #                                           SETTERS                                                   #
-    #######################################################################################################
-
-    async def set_antinuke_setting(
-        self, 
-        guild_id: int, 
-        setting: str, 
-        value: str
-    ) -> bool:
-        """Set Antinuke setting in the database
-        
-        Parameters
-        -----------
-        guild_id: int
-            The guild ID
-
-        setting: str
-            The setting to set in the database
-
-        value: str
-            The value to set for the setting
-
-        Returns
-        -------
-        bool
-            True if the setting was set successfully, False otherwise
-        """
-        try:
-            async with self.bot.pool.acquire() as conn:
-                async with conn.cursor(aiomysql.DictCursor) as cur:
-                    await cur.execute(
-                        f"UPDATE antinuke_system SET {setting} = %s WHERE guild_id = %s;",
-                        (value, guild_id,)
-                    )
-                    return True
-        except Exception as e:
-            logger.error(f"Failed to set Antinuke setting: {e}")
-            return False
-        
-    async def set_antinuke_parameters(
-        self, 
-        guild_id: int, 
-        setting: Literal['webhook', 'channel', 'emoji', 'ban', 'kick', 'role'], 
-        enabled: Optional[bool] = None, 
-        threshold: Optional[int] = None, 
-        punishment: Optional[int] = None
-    ) -> bool:
-        """Set Antinuke settings in the database
-        
-        Parameters
-        -----------
-        guild_id: int
-            The guild ID
-
-        setting: str
-            The setting to set in the database
-
-        enabled: Optional[bool]
-            The value to set for the enabled setting
-
-        threshold: Optional[int]
-            The value to set for the threshold setting
-
-        punishment: Optional[int]
-            The value to set for the punishment setting
-
-        Returns
-        -------
-        bool
-            True if the setting was set successfully, False otherwise
-        """
-        try:
-            current_settings = await self.get_antinuke_setting(guild_id, setting)
-            current_settings = json.loads(current_settings)
-            
-            if enabled is not None:
-                current_settings['enabled'] = 1 if enabled else 0
-            if threshold is not None:
-                current_settings['threshold'] = threshold
-            if punishment is not None:
-                current_settings['punishment'] = punishment
-            
-            value = json.dumps(current_settings)
-            return await self.set_antinuke_setting(guild_id, setting, value)
-        except Exception as e:
-            logger.error(f"Failed to set Antinuke settings: {e}")
-            return False
-        
-    async def set_permissions_settings(
-        self, 
-        guild_id: int, 
-        enabled: bool, 
-        grant: List[str], 
-        remove: List[str], 
-        punishment: int
-    ) -> bool:
-        """Set permissions settings in the database
-        
-        Parameters
-        -----------
-        guild_id: int
-            The guild ID
-
-        enabled: bool
-            The value to set for the enabled setting
-
-        grant: List[str]
-            The permission to watch for granting
-
-        remove: List[str]
-            The permission to watch for removal
-
-        punishment: int
-            The punishment to apply
-
-        Returns
-        -------
-        bool
-            True if the setting was set successfully, False otherwise
-        """
-        try:
-            # get current settings
-            current_settings = await self.get_permissions_settings(guild_id)
-            if current_settings is None:
-                return False
-            current_settings = json.loads(current_settings)
-
-            current_grants: List[str] = current_settings['grant']
-            current_removes: List[str] = current_settings['remove']
-
-            # check if the permissions are already in the list and set new values
-            for perm in grant:
-                if perm not in current_grants:
-                    current_grants.append(perm)
-                else:
-                    current_grants.remove(perm)
-            for perm in remove:
-                if perm not in current_removes:
-                    current_removes.append(perm)
-                else:
-                    current_removes.remove(perm)
-
-            value = {
-                'enabled': 1 if enabled else 0,
-                'grant': current_grants,
-                'remove': current_removes,
-                'punishment': punishment
-            }
-            value = json.dumps(value)
-            return await self.set_antinuke_setting(guild_id, 'permissions', value)
-        except Exception as e:
-            logger.error(f"Failed to set permissions settings: {e}")
-            return False
-        
-    async def set_vanity_settings(
-        self, 
-        guild_id: int, 
-        enabled: bool, 
-        punishment: int
-    ) -> bool:
-        """Set vanity settings in the database
-        
-        Parameters
-        -----------
-        guild_id: int
-            The guild ID
-
-        enabled: bool
-            The value to set for the enabled setting
-
-        punishment: int
-            The punishment to apply
-
-        Returns
-        -------
-        bool
-            True if the setting was set successfully, False otherwise
-        """
-        try:
-            value = {
-                'enabled': 1 if enabled else 0,
-                'punishment': punishment
-            }
-            value = json.dumps(value)
-            return await self.set_antinuke_setting(guild_id, 'vanity', value)
-        except Exception as e:
-            logger.error(f"Failed to set vanity settings: {e}")
-            return False
-        

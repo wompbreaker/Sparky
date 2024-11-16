@@ -1,38 +1,22 @@
-#######################################################################################################
-#                                           GETTERS                                                   #
-#######################################################################################################
-
-"""
-CREATE TABLE IF NOT EXISTS logging (
-	guild_id BIGINT PRIMARY KEY,
-	channels JSON NOT NULL DEFAULT '{}' CHECK (json_valid(channels)),
-	ignored_channels JSON NOT NULL DEFAULT '[]' CHECK (json_valid(ignored_channels)),
-	ignored_members JSON NOT NULL DEFAULT '[]' CHECK (json_valid(ignored_members))
-);
-"""
 import json
 from logging import getLogger
 from typing import Any, Dict, List, Optional, Union
 from aiomysql import DictCursor
-from bot import Sparky
 from discord import (
 	Guild,
 	Member,
 	utils,
-	TextChannel,
-	StageChannel,
-	CategoryChannel,
-	Thread,
-	VoiceChannel
+	TextChannel
 )
-logger = getLogger(__name__)
+from helpers import get_pool
 
-bot = Sparky()
+logger = getLogger(__name__)
 
 async def get_log_property(guild_id: int, property: str) -> Optional[Union[Dict, List]]:
 	"""Get log property for a specific guild"""
 	try:
-		async with bot.pool.acquire() as conn:
+		pool = await get_pool()
+		async with pool.acquire() as conn:
 			async with conn.cursor(DictCursor) as cur:
 				await cur.execute(
 					f"SELECT {property} FROM logging WHERE guild_id = %s",
@@ -104,7 +88,8 @@ async def get_ignored_members(guild: Guild) -> Optional[List[Member]]:
 
 async def setup_logging(guild_id: int) -> bool:
 	try:
-		async with bot.pool.acquire() as conn:
+		pool = await get_pool()
+		async with pool.acquire() as conn:
 			async with conn.cursor() as cur:
 				await cur.execute(
 					"INSERT INTO logging (guild_id) VALUES (%s);",
@@ -117,7 +102,8 @@ async def setup_logging(guild_id: int) -> bool:
 
 async def reset_logging(guild_id: int) -> bool:
 	try:
-		async with bot.pool.acquire() as conn:
+		pool = await get_pool()
+		async with pool.acquire() as conn:
 			async with conn.cursor() as cur:
 				await cur.execute(
 					"DELETE FROM logging WHERE guild_id = %s;",
@@ -132,8 +118,9 @@ async def set_log_property(guild_id: int, property: str, value: Any) -> bool:
 	"""Set log property for a specific guild"""
 	try:
 		val = await get_log_property(guild_id, property)
+		pool = await get_pool()
 		if val is None:
-			async with bot.pool.acquire() as conn:
+			async with pool.acquire() as conn:
 				async with conn.cursor() as cur:
 					await cur.execute(
 						f"INSERT INTO logging (guild_id, {property}) VALUES (%s, %s);",
@@ -141,7 +128,7 @@ async def set_log_property(guild_id: int, property: str, value: Any) -> bool:
 					)
 					return True
 		else:
-			async with bot.pool.acquire() as conn:
+			async with pool.acquire() as conn:
 				async with conn.cursor() as cur:
 					await cur.execute(
 						f"UPDATE logging SET {property} = %s WHERE guild_id = %s;",

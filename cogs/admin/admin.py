@@ -369,7 +369,7 @@ class Admin(commands.Cog):
 	@commands.is_owner()
 	async def shutdown(self, ctx: Context):
 		"""Shuts down the bot"""
-		await ctx.warn("Shutting down...")
+		await ctx.warning("Shutting down...")
 		await self.bot.close()
 
 	@commands.group(

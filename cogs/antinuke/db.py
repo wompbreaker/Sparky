@@ -1,12 +1,10 @@
 from typing import Optional, List, Tuple, Literal
-from bot import Sparky
 from aiomysql import DictCursor
 import logging
 import json
+from helpers import get_pool
 
 logger = logging.getLogger(__name__)
-
-bot = Sparky()
 
 __all__ = (
 	'init_antinuke_system',
@@ -44,7 +42,8 @@ async def init_antinuke_system(guild_id: int) -> bool:
 		True if the system was initialized successfully, False otherwise
 	"""
 	try:
-		async with bot.pool.acquire() as conn:
+		pool = await get_pool()
+		async with pool.acquire() as conn:
 			async with conn.cursor(DictCursor) as cur:
 				await cur.execute(
 					"INSERT INTO antinuke_system (guild_id) VALUES (%s) ON DUPLICATE KEY UPDATE guild_id = guild_id;",
@@ -69,7 +68,8 @@ async def deinit_antinuke_system(guild_id: int) -> bool:
 		True if the system was deinitialized successfully, False otherwise
 	"""
 	try:
-		async with bot.pool.acquire() as conn:
+		pool = await get_pool()
+		async with pool.acquire() as conn:
 			async with conn.cursor(DictCursor) as cur:
 				await cur.execute(
 					"DELETE FROM antinuke_system WHERE guild_id = %s;",
@@ -104,7 +104,8 @@ async def get_antinuke_setting(
 		The setting value
 	"""
 	try:
-		async with bot.pool.acquire() as conn:
+		pool = await get_pool()
+		async with pool.acquire() as conn:
 			async with conn.cursor(DictCursor) as cur:
 				await cur.execute(
 					f"SELECT * FROM antinuke_system WHERE guild_id = %s;",
@@ -161,7 +162,7 @@ async def is_antinuke_admin(
 		True if the user is an Antinuke admin, False otherwise
 	"""
 	admins = await get_antinuke_admins(guild_id)
-	if user_id in admins:
+	if str(user_id) in admins:
 		return True
 	return False
 	
@@ -346,7 +347,8 @@ async def set_antinuke_setting(
 		True if the setting was set successfully, False otherwise
 	"""
 	try:
-		async with bot.pool.acquire() as conn:
+		pool = await get_pool()
+		async with pool.acquire() as conn:
 			async with conn.cursor(DictCursor) as cur:
 				await cur.execute(
 					f"UPDATE antinuke_system SET {setting} = %s WHERE guild_id = %s;",

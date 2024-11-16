@@ -7,6 +7,7 @@ from bot import Sparky
 import logging
 import aiomysql
 import json
+from .db import *
 
 from helpers import (
     Context, 
@@ -467,7 +468,7 @@ class InterfaceView(discord.ui.View):
         voice_channels = user.guild.voice_channels
         if voice_channels:
             try:
-                custom_channels = await self.bot.voicemaster_cog.get_custom_voice_channels(user.guild)
+                custom_channels = await get_custom_voice_channels(user.guild)
             except Exception as e:
                 logger.error(f"Failed to get custom voice channels: {e}")
                 return False
@@ -481,7 +482,7 @@ class InterfaceView(discord.ui.View):
         voice_channels = user.guild.voice_channels
         if voice_channels:
             try:
-                custom_channels = await self.bot.voicemaster_cog.get_custom_voice_channels(user.guild)
+                custom_channels = await get_custom_voice_channels(user.guild)
             except Exception as e:
                 logger.error(f"Failed to get custom voice channels: {e}")
                 return False
@@ -678,7 +679,7 @@ class Voicemaster(commands.Cog):
     async def on_voice_state_update(self, member: discord.Member, before: discord.VoiceState, after: discord.VoiceState):
         # get the Join to Create channel
         try:
-            voicemaster_channel_id = await self.get_voicemaster_setting(member.guild, "voice_channel_id")
+            voicemaster_channel_id = await get_voicemaster_setting(member.guild, "voice_channel_id")
         except Exception as e:
             logger.error(f"Failed to get voice channel id: {e}")
             return
@@ -687,11 +688,11 @@ class Voicemaster(commands.Cog):
             try:
                 # create a new voice channel with settings from the database
                 try:
-                    voice_settings = await self.get_voicemaster_settings(member.guild)
+                    voice_settings = await get_voicemaster_settings(member.guild)
                 except Exception as e:
                     logger.error(f"Failed to get voice settings: {e}")
                     return
-                category_channel_ids = await self.get_category_channel_ids(member.guild)
+                category_channel_ids = await get_category_channel_ids(member.guild)
                 if category_channel_ids is not None:
                     custom_category_id = category_channel_ids[0]
                     default_category_id = category_channel_ids[1]
@@ -720,13 +721,13 @@ class Voicemaster(commands.Cog):
                 # move the user to the new channel
                 await member.move_to(new_channel)
                 # create a database entry for the new channel
-                await self.insert_custom_voice_channel(new_channel, member)
+                await insert_custom_voice_channel(new_channel, member)
             except Exception as e:
                 logger.error(f"Failed to create voice channel: {e}")
 
         # delete custom voice channels if they are empty
         try:
-            custom_channels = await self.get_custom_voice_channels(member.guild)
+            custom_channels = await get_custom_voice_channels(member.guild)
         except Exception as e:
             logger.error(f"Failed to get custom voice channels: {e}")
             return
@@ -736,14 +737,14 @@ class Voicemaster(commands.Cog):
             if len(before.channel.members) == 0:
                 try:
                     await before.channel.delete(reason="VoiceMaster channel deletion")
-                    await self.delete_custom_voice_channel(before.channel)
+                    await delete_custom_voice_channel(before.channel)
                 except Exception as e:
                     logger.error(f"Failed to delete voice channel: {e}")
 
         # check if a user joins a custom voice channel that has automatic roles enabled or if the server has an auto role set
         if after.channel and after.channel.id in [custom_channel['channel_id'] for custom_channel in custom_channels]:
-            default_role_id = await self.get_voicemaster_setting(member.guild, "default_role_id")
-            channel_role = await self.get_custom_voice_channel_role(channel=after.channel)
+            default_role_id = await get_voicemaster_setting(member.guild, "default_role_id")
+            channel_role = await get_custom_voice_channel_role(channel=after.channel)
             role_id = channel_role.id if channel_role is not None else default_role_id
             if role_id is not None:
                 role = member.guild.get_role(role_id)
@@ -780,7 +781,7 @@ class Voicemaster(commands.Cog):
             return
         if len(status) > 500:
             status = status[:500]
-        voice_channel = await self.get_users_voice_channel(ctx.author)
+        voice_channel = await get_users_voice_channel(ctx.author)
         if voice_channel is not None:
             try:
                 await voice_channel.edit(status=status)
@@ -802,13 +803,13 @@ class Voicemaster(commands.Cog):
     async def voicemaster_category(self, ctx: Context, category: Optional[discord.CategoryChannel]):
         """Redirect voice channels to custom category"""
         if category is None:
-            category_channel_ids = await self.get_category_channel_ids(ctx.guild)
+            category_channel_ids = await get_category_channel_ids(ctx.guild)
             if category_channel_ids is not None:
                 custom_id = category_channel_ids[0]
                 if custom_id is None:
                     await ctx.send_help(self.voicemaster_category)
                     return
-                val = await self.set_category_channel_id(ctx.guild, None)
+                val = await set_category_channel_id(ctx.guild, None)
                 if val:
                     await ctx.success("Set **VoiceMaster** category back to **default**")
                 else:
@@ -817,7 +818,7 @@ class Voicemaster(commands.Cog):
             else:
                 await ctx.warning("Failed to change category channel")
                 return
-        val = await self.set_category_channel_id(ctx.guild, category.id)
+        val = await set_category_channel_id(ctx.guild, category.id)
         if val:
             await ctx.success(f"New **VoiceMaster** channels will be created under **{category.name}**")
         else:
@@ -876,10 +877,10 @@ class Voicemaster(commands.Cog):
     async def voicemaster_claim(self, ctx: Context):
         """Claim an inactive voice channel"""
         # check if an owner is already present in the channel
-        voice_channel = await self.get_users_voice_channel(ctx.author)
+        voice_channel = await get_users_voice_channel(ctx.author)
         if voice_channel is not None:
             try:
-                custom_channels = await self.get_custom_voice_channels(ctx.guild)
+                custom_channels = await get_custom_voice_channels(ctx.guild)
             except Exception as e:
                 logger.error(f"Failed to get custom channels: {e}")
                 await ctx.warning("Failed to **claim** the **voice channel**")
@@ -894,7 +895,7 @@ class Voicemaster(commands.Cog):
                         await ctx.warning("You can't claim this **voice channel** - the owner is still active here")
                         return
                     try:
-                        await self.transfer_custom_voice_channel(voice_channel, ctx.author)
+                        await transfer_custom_voice_channel(voice_channel, ctx.author)
                         await ctx.success("You have **claimed** this **voice channel**")
                     except Exception as e:
                         logger.error(f"Failed to claim channel: {e}")
@@ -909,11 +910,11 @@ class Voicemaster(commands.Cog):
     @is_voice_owner()
     async def voicemaster_transfer(self, ctx: Context, user: Optional[discord.Member]):
         """Transfer ownership of your channel to another member"""        
-        user_channel = await self.get_users_voice_channel(user)
+        user_channel = await get_users_voice_channel(user)
         if user_channel is None:
             await ctx.warning(f"{user.mention} is not connected to a **voice channel**")
             return
-        owner_channel = await self.get_users_voice_channel(ctx.author)
+        owner_channel = await get_users_voice_channel(ctx.author)
         if owner_channel is None:
             await ctx.warning("You're not connected to a **voice channel**")
             return
@@ -925,7 +926,7 @@ class Voicemaster(commands.Cog):
                 if user.id not in [member.id for member in user_channel.members]:
                     await ctx.warning("You can't transfer **ownership** to a member who is not active in this **voice channel**")
                     return
-                await self.transfer_custom_voice_channel(owner_channel, user)
+                await transfer_custom_voice_channel(owner_channel, user)
                 await ctx.success(f"**Ownership** of the voice channel has been transferred to {user.mention}")
             except Exception as e:
                 logger.error(f"Failed to transfer ownership: {e}")
@@ -973,7 +974,7 @@ class Voicemaster(commands.Cog):
         if role is None:
             await ctx.warning("I couldn't find the **default join role**, try setting it by providing a role")
             return
-        val = await self.set_voicemaster_setting(ctx.guild, "default_role_id", role.id)
+        val = await set_voicemaster_setting(ctx.guild, "default_role_id", role.id)
         if val:
             await ctx.success(f"Set {role.mention} as the **default role** for **VoiceMaster** channels")
         else:
@@ -988,7 +989,7 @@ class Voicemaster(commands.Cog):
     async def voicemaster_default_name(self, ctx: Context, name: Optional[str]):
         """Set default name for new Voice Channels"""
         try:
-            db_name = await self.get_voicemaster_setting(ctx.guild, "default_name")
+            db_name = await get_voicemaster_setting(ctx.guild, "default_name")
         except Exception as e:
             logger.error(f"Failed to get default name: {e}")
             await ctx.error("Failed to get **default name**")
@@ -998,10 +999,10 @@ class Voicemaster(commands.Cog):
             await ctx.send_help(self.voicemaster_default_name)
             return
         if name is None and db_name != default_name:
-            await self.set_voicemaster_setting(ctx.guild, "default_name", "{user.name}'s channel")
+            await set_voicemaster_setting(ctx.guild, "default_name", "{user.name}'s channel")
             await ctx.success("Reset the **default name** for **VoiceMaster** channels")
             return
-        await self.set_voicemaster_setting(ctx.guild, "default_name", name)
+        await set_voicemaster_setting(ctx.guild, "default_name", name)
         await ctx.success(f"Set **default name** for **VoiceMaster** channels to `{name}`")
 
     @voicemaster_default.command(
@@ -1020,7 +1021,7 @@ class Voicemaster(commands.Cog):
             await ctx.send(info_embed)
             return
         try:
-            db_region = await self.get_voicemaster_setting(ctx.guild, "default_region")
+            db_region = await get_voicemaster_setting(ctx.guild, "default_region")
         except Exception as e:
             logger.error(f"Failed to get default region: {e}")
             await ctx.error("Failed to get **default region**")
@@ -1033,7 +1034,7 @@ class Voicemaster(commands.Cog):
             await ctx.send_help(self.voicemaster_default_region)
             return
         if region is None and db_region is not None:
-            await self.set_voicemaster_setting(ctx.guild, "default_region", None)
+            await set_voicemaster_setting(ctx.guild, "default_region", None)
             await ctx.success("Updated **default region** to `automatic` for **VM channels**")
             return
         if region not in region_list:
@@ -1042,7 +1043,7 @@ class Voicemaster(commands.Cog):
         if region == "automatic":
             region = None
         region_name = region if region is not None else "automatic"
-        await self.set_voicemaster_setting(ctx.guild, "default_region", region)
+        await set_voicemaster_setting(ctx.guild, "default_region", region)
         await ctx.success(f"Updated **default region** to `{region_name}` for **VM channels**")
 
     @voicemaster_default.command(
@@ -1056,7 +1057,7 @@ class Voicemaster(commands.Cog):
         if bitrate < 8 or bitrate > 96:
             await ctx.warning("**Bitrate** must be between `8` and `96` kbps")
             return
-        await self.set_voicemaster_setting(ctx.guild, "default_bitrate", bitrate)
+        await set_voicemaster_setting(ctx.guild, "default_bitrate", bitrate)
         await ctx.success(f"Updated **default bitrate** to `{bitrate}` for **VM channels**")
 
     @voicemaster.command(
@@ -1070,7 +1071,7 @@ class Voicemaster(commands.Cog):
     async def voicemaster_setup(self, ctx: Context):
         """Begin VoiceMaster server configuration setup"""
         try:
-            is_setup = await self.get_voicemaster_setting(ctx.guild, "is_setup")
+            is_setup = await get_voicemaster_setting(ctx.guild, "is_setup")
         except Exception as e:
             logger.error(f"Failed to get voicemaster settings: {e}")
             await ctx.warning(f"Failed to initialize **VoiceMaster**. Please contact support in the [__support server__]({SUPPORT_SERVER})")
@@ -1131,20 +1132,20 @@ class Voicemaster(commands.Cog):
             logger.info(f"Created voice channel: {voice_channel}")
             # put category channel, interface channel and voice channel ID's in database
             if in_database:
-                await self.set_voicemaster_setting(ctx.guild, "is_setup", True)
+                await set_voicemaster_setting(ctx.guild, "is_setup", True)
             else:
-                val = await self.initialize_voicemaster(ctx.guild)
+                val = await initialize_voicemaster(ctx.guild)
                 if val is False:
                     logger.error("Failed to initialize VoiceMaster")
                     message = f"Failed to initialize **VoiceMaster**. Please contact support in the [__support server__]({SUPPORT_SERVER})"
                     warning_embed = make_embed_warning(ctx.author, message)
                     await progress_message.edit(embed=warning_embed)
                     return
-            val_category = await self.init_category_channel_ids(ctx.guild, category_channel.id)
+            val_category = await init_category_channel_ids(ctx.guild, category_channel.id)
             logger.info(f"val_category: {val_category}")
-            val_interface = await self.set_voicemaster_setting(ctx.guild, "interface_channel_id", interface_channel.id)
+            val_interface = await set_voicemaster_setting(ctx.guild, "interface_channel_id", interface_channel.id)
             logger.info(f"val_interface: {val_interface}")
-            val_voice = await self.set_voicemaster_setting(ctx.guild, "voice_channel_id", voice_channel.id)
+            val_voice = await set_voicemaster_setting(ctx.guild, "voice_channel_id", voice_channel.id)
             logger.info(f"val_voice: {val_voice}")
             if not val_category or not val_interface or not val_voice:
                 logger.error("Failed to initialize VoiceMaster")
@@ -1188,7 +1189,7 @@ class Voicemaster(commands.Cog):
         """Reset server configuration for VoiceMaster"""
         logger.info(f"Resetting VoiceMaster for {ctx.guild}")
         
-        category_channel_ids = await self.get_category_channel_ids(ctx.guild)
+        category_channel_ids = await get_category_channel_ids(ctx.guild)
         if category_channel_ids is not None:
             logger.info(f"category_channel_ids: {category_channel_ids}")
             default_category_id = category_channel_ids[1]
@@ -1201,7 +1202,7 @@ class Voicemaster(commands.Cog):
         else:
             logger.error("Failed to get category channel ID")
         try:
-            interface_channel_id = await self.get_voicemaster_setting(ctx.guild, "interface_channel_id")
+            interface_channel_id = await get_voicemaster_setting(ctx.guild, "interface_channel_id")
         except Exception as e:
             logger.error(f"Failed to get interface channel ID: {e}")
             return
@@ -1215,7 +1216,7 @@ class Voicemaster(commands.Cog):
         else:
             logger.error("Failed to get interface channel ID")
         try:
-            voice_channel_id = await self.get_voicemaster_setting(ctx.guild, "voice_channel_id")
+            voice_channel_id = await get_voicemaster_setting(ctx.guild, "voice_channel_id")
         except Exception as e:
             logger.error(f"Failed to get voice channel ID: {e}")
             return
@@ -1229,7 +1230,7 @@ class Voicemaster(commands.Cog):
         else:
             logger.error("Failed to get voice channel ID")
         logger.info("Deleted VoiceMaster channels")
-        reset = await self.reset_voicemaster_settings(ctx.guild)
+        reset = await reset_voicemaster_settings(ctx.guild)
         if reset:
             logger.info("Reset VoiceMaster settings")
             await ctx.success("Reset the **VoiceMaster** configuration.")
@@ -1280,17 +1281,17 @@ class Voicemaster(commands.Cog):
     @commands.has_guild_permissions(manage_roles=True)
     async def voicemaster_role(self, ctx: Context, role: Optional[discord.Role]):
         """Grant roles to members who join and remove from members leaving"""
-        voice_channel = await self.get_users_voice_channel(ctx.author)
+        voice_channel = await get_users_voice_channel(ctx.author)
         if voice_channel is None:
             raise NotVoiceMember("You're not connected to a **voice channel**")
 
         if role is None:
-            db_role = await self.get_custom_voice_channel_role(voice_channel)
+            db_role = await get_custom_voice_channel_role(voice_channel)
             if db_role is None:
                 await ctx.send_help(self.voicemaster_role)
                 return
             try:
-                default_role_id = await self.get_voicemaster_setting(ctx.guild, "default_role_id")
+                default_role_id = await get_voicemaster_setting(ctx.guild, "default_role_id")
             except Exception as e:
                 logger.error(f"Failed to get default role: {e}")
                 await ctx.warning("Failed to get **default role**")
@@ -1298,7 +1299,7 @@ class Voicemaster(commands.Cog):
             if default_role_id is None:
                 await ctx.warning("Failed to get **default role**")
                 return
-            val = await self.set_custom_voice_channel_role(voice_channel, default_role_id)
+            val = await set_custom_voice_channel_role(voice_channel, default_role_id)
             if val:
                 await ctx.success("Reset the **role** for the **voice channel**")
             else:
@@ -1314,7 +1315,7 @@ class Voicemaster(commands.Cog):
             return
         
         # assign role to all members in the channel and all the future members
-        val = await self.set_custom_voice_channel_role(voice_channel, role.id)
+        val = await set_custom_voice_channel_role(voice_channel, role.id)
         if val:
             logger.info(f"Set role for voice channel: {role}")
         else:
@@ -1347,7 +1348,7 @@ class Voicemaster(commands.Cog):
             await ctx.warning("**Bitrate** must be between `8` and `96` kbps")
             return
         
-        voice_channel = await self.get_users_voice_channel(ctx.author)
+        voice_channel = await get_users_voice_channel(ctx.author)
         if voice_channel is not None:
             try:
                 await voice_channel.edit(bitrate=bitrate*1000)
@@ -1369,7 +1370,7 @@ class Voicemaster(commands.Cog):
             await ctx.warning(f"Invalid **option**: `{option}`. Use `on` or `off`")
             return
         
-        voice_channel = await self.get_users_voice_channel(ctx.author)
+        voice_channel = await get_users_voice_channel(ctx.author)
         if voice_channel is None:
             raise NotVoiceMember("You're not connected to a **voice channel**")
         enabled_message = "Your **voice channel** is now a **music only channel**"
@@ -1400,7 +1401,7 @@ class Voicemaster(commands.Cog):
         """Set name for voice channels"""
         # get default name from database
         try:
-            db_name = await self.get_voicemaster_setting(ctx.guild, "default_name")
+            db_name = await get_voicemaster_setting(ctx.guild, "default_name")
         except Exception as e:
             logger.error(f"Failed to get default name: {e}")
             return
@@ -1416,7 +1417,7 @@ class Voicemaster(commands.Cog):
         if name is not None:
             message = f"Set **name** for **voice channel** to `{name}`"
 
-        voice_channel = await self.get_users_voice_channel(ctx.author)
+        voice_channel = await get_users_voice_channel(ctx.author)
         if voice_channel is not None:
             try:
                 await voice_channel.edit(name=name)
@@ -1434,7 +1435,7 @@ class Voicemaster(commands.Cog):
     async def voicemaster_permit(self, ctx: Context, user: Optional[discord.Member]):
         """Permit a user to join your voice channel"""
         overwrites = discord.PermissionOverwrite(connect=True, view_channel=True)
-        voice_channel = await self.get_users_voice_channel(ctx.author)
+        voice_channel = await get_users_voice_channel(ctx.author)
         if voice_channel is not None:
             try:
                 await voice_channel.set_permissions(user, overwrite=overwrites)
@@ -1454,7 +1455,7 @@ class Voicemaster(commands.Cog):
     async def voicemaster_reject(self, ctx: Context, user: Optional[discord.Member]):
         """Reject a user from joining your voice channel"""
         overwrites = discord.PermissionOverwrite(connect=False, view_channel=False)
-        voice_channel = await self.get_users_voice_channel(ctx.author)
+        voice_channel = await get_users_voice_channel(ctx.author)
         if voice_channel is not None:
             if user.id == ctx.author.id:
                 await ctx.warning("You can't reject yourself from joining the **voice channel**")
@@ -1489,11 +1490,7 @@ class Voicemaster(commands.Cog):
                 color=discord.Color(0x69919d),
                 type='rich'
             )
-            if self.bot.user.avatar:
-                avatar_url = self.bot.user.avatar.url
-            else:
-                avatar_url = self.bot.user.default_avatar.url
-            embed.set_thumbnail(url=avatar_url)
+            embed.set_thumbnail(url=self.bot.user.display_avatar.url)
             invite_link = "https://discord.gg/8MTyyEUsJb"
             embed.add_field(
                 name='**Button Usage**',
@@ -1520,349 +1517,3 @@ class Voicemaster(commands.Cog):
         except Exception as e:
             logger.error(f"Failed to create interface: {e}")
             await interface_channel.send("Failed to create interface")
-
-    @commands.command(name="dv")
-    @commands.is_owner()
-    async def create_dv(self, ctx: Context):
-        discord_view = DisconnectView([ctx.author])
-        try:
-            await ctx.send("Disconnect a member", view=discord_view)
-        except Exception as e:
-            logger.error(f"Failed to create DV: {e}")
-            await ctx.send("Failed to create DV")
-
-    #######################################################################################################
-    #                                           GETTERS                                                   #
-    #######################################################################################################
-
-    async def get_voicemaster_settings(
-            self, guild: discord.Guild
-    ) -> Optional[Tuple[int, dict, bool, int, str, str, int]]:
-        """Get Voicemaster settings for the guild from the database"""
-        try:
-            async with self.bot.pool.acquire() as conn:  # aiomysql.Connection
-                async with conn.cursor(aiomysql.DictCursor) as cur:  # aiomysql.DictCursor
-                    await cur.execute(
-                        "SELECT * FROM voicemaster_system WHERE guild_id = %s;",
-                        (guild.id,)
-                    )
-                    result = await cur.fetchone()
-                    if result:
-                        category_channel_ids = result['category_channel_ids']
-                        interface_channel_id = result['interface_channel_id']
-                        voice_channel_id = result['voice_channel_id']
-                        is_setup = result['is_setup']
-                        default_role_id = result['default_role_id']
-                        default_name = result['default_name']
-                        default_region = result['default_region']
-                        default_bitrate = result['default_bitrate']
-                        return (
-                            category_channel_ids,
-                            interface_channel_id, 
-                            voice_channel_id, 
-                            is_setup, 
-                            default_role_id, 
-                            default_name, 
-                            default_region, 
-                            default_bitrate
-                        )
-                    return None
-        except Exception as e:
-            logger.error(f"Failed to get Voicemaster settings: {e}")
-            raise e
-
-    async def get_voicemaster_setting(self, guild: discord.Guild, setting: str):
-        """Get Voicemaster setting from the database"""
-        try:
-            async with self.bot.pool.acquire() as conn:  # aiomysql.Connection
-                aiomysql.Connection
-                async with conn.cursor(aiomysql.DictCursor) as cur:  # aiomysql.DictCursor
-                    await cur.execute(
-                        f"SELECT * FROM voicemaster_system WHERE guild_id = %s;",
-                        (guild.id,)
-                    )
-                    result = await cur.fetchone()
-                    return result[setting] if result else None
-        except Exception as e:
-            logger.error(f"Failed to get Voicemaster setting: {e}")
-            raise e
-
-    async def get_category_channel_ids(self, guild: discord.Guild) -> Tuple[int] | None:
-        """Get category channel id for the guild"""
-        try:
-            try:
-                category_channel_ids = await self.get_voicemaster_setting(guild, "category_channel_ids")
-            except Exception as e:
-                logger.error(f"Failed to get category channel id: {e}")
-                raise e
-            if category_channel_ids is not None:
-                category_channel_ids = json.loads(category_channel_ids)
-                return category_channel_ids['custom_id'], category_channel_ids['default_id']
-            return None
-        except Exception as e:
-            logger.error(f"Failed to get category channel id: {e}")
-            raise e
-
-    async def get_custom_voice_channels(self, guild: discord.Guild) -> List[Dict]:
-        """Get custom voice channels from the database"""
-        try:
-            custom_channels_json = await self.get_voicemaster_setting(guild, "custom_channels")
-            logger.info(f"custom_channels_json: {custom_channels_json}")
-            custom_channels: List[Dict] = json.loads(custom_channels_json)
-            logger.info(f"custom_channels: {custom_channels}")
-            return custom_channels
-        except Exception as e:
-            logger.error(f"Failed to get custom voice channels: {e}")
-            raise e
-
-    async def get_users_voice_channel(self, user: discord.Member) -> Optional[discord.VoiceChannel]:
-        """Get the voice channel of the user"""
-        try:
-            voice_channels = user.guild.voice_channels
-            try:
-                custom_channels = await self.get_custom_voice_channels(user.guild)
-            except Exception as e:
-                logger.error(f"Failed to get custom voice channels: {e}")
-                raise e
-            for voice_channel in voice_channels:
-                if user in voice_channel.members and voice_channel.id in [custom_channel['channel_id'] for custom_channel in custom_channels]:
-                    return voice_channel
-            return None
-        except Exception as e:
-            logger.error(f"Failed to get user's voice channel: {e}")
-            raise e
-        
-    async def get_custom_voice_channel(self, channel: discord.VoiceChannel) -> Optional[Dict]:
-        """Get a custom voice channel from the database"""
-        try:
-            try:
-                custom_channels = await self.get_custom_voice_channels(channel.guild)
-            except Exception as e:
-                logger.error(f"Failed to get custom voice channels: {e}")
-                raise e
-            for custom_channel in custom_channels:
-                if custom_channel['channel_id'] == channel.id:
-                    return custom_channel
-            return None
-        except Exception as e:
-            logger.error(f"Failed to get custom voice channel: {e}")
-            raise e
-        
-    async def get_custom_voice_channel_role(self, channel: discord.VoiceChannel) -> Optional[discord.Role]:
-        """Get the role of a custom voice channel"""
-        try:
-            try:
-                custom_channel = await self.get_custom_voice_channel(channel)
-            except Exception as e:
-                logger.error(f"Failed to get custom voice channel: {e}")
-                raise e
-            if custom_channel is not None:
-                role_id = custom_channel['role_id']
-                role = channel.guild.get_role(role_id)
-                return role
-            return None
-        except Exception as e:
-            logger.error(f"Failed to get custom voice channel role: {e}")
-            raise e
-
-    #######################################################################################################
-    #                                           SETTERS                                                   #
-    #######################################################################################################
-
-    async def initialize_voicemaster(self, guild: discord.Guild):
-        """Initialize Voicemaster database settings for the guild"""
-        try:
-            try:
-                result = await self.get_voicemaster_settings(guild)
-            except Exception as e:
-                logger.error(f"Failed to get Voicemaster settings: {e}")
-                return False
-            if result is None:
-                async with self.bot.pool.acquire() as conn:  # aiomysql.Connection
-                    async with conn.cursor(aiomysql.DictCursor) as cur:  # aiomysql.DictCursor
-                        await cur.execute(
-                            "INSERT INTO voicemaster_system "
-                            "(guild_id, category_channel_ids, interface_channel_id, voice_channel_id, is_setup, "
-                            "default_role_id, default_name, default_region, default_bitrate, custom_channels) "
-                            "VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s);",
-                            (guild.id, '[]', None, None, True, None, "{user.name}'s channel", None, 96000, '[]')
-                        )
-                        return True
-            return False
-        except Exception as e:
-            logger.error(f"Failed to initialize Voicemaster: {e}")
-            return False
-
-    async def reset_voicemaster_settings(self, guild: discord.Guild) -> bool:
-        """Reset Voicemaster settings for the guild in the database"""
-        try:
-            # get Voicemaster settings, if they exist, set is_setup to False and initialize the settings
-            try:
-                result = await self.get_voicemaster_settings(guild)
-            except Exception as e:
-                logger.error(f"Failed to get Voicemaster settings: {e}")
-                return False
-            if result is not None:
-                # update Voicemaster settings to initial values
-                async with self.bot.pool.acquire() as conn:  # aiomysql.Connection
-                    async with conn.cursor(aiomysql.DictCursor) as cur:  # aiomysql.DictCursor
-                        await cur.execute(
-                            "UPDATE voicemaster_system SET "
-                            "category_channel_ids = %s, interface_channel_id = %s, voice_channel_id = %s, "
-                            "is_setup = %s, default_role_id = %s, default_name = %s, default_region = %s, "
-                            "default_bitrate = %s, custom_channels = %s WHERE guild_id = %s;",
-                            ('[]', None, None, False, None, "{user.name}'s channel", None, 96000, '[]', guild.id)
-                        )
-                return True
-            return False
-        except Exception as e:
-            logger.error(f"Failed to reset Voicemaster settings: {e}")
-            return False
-        
-    async def set_voicemaster_setting(
-            self, guild: discord.Guild, setting: str, value: int
-    ) -> bool:
-        """Set Voicemaster setting in the database"""
-        try:
-            async with self.bot.pool.acquire() as conn:  # aiomysql.Connection
-                async with conn.cursor(aiomysql.DictCursor) as cur:  # aiomysql.DictCursor
-                    await cur.execute(
-                        f"UPDATE voicemaster_system SET {setting} = %s WHERE guild_id = %s;",
-                        (value, guild.id,)
-                    )
-                    return True
-        except Exception as e:
-            logger.error(f"Failed to set Voicemaster setting: {e}")
-            return False
-        
-    async def init_category_channel_ids(self, guild: discord.Guild, default_id: int) -> bool:
-        """Initialize category channel ids for the guild"""
-        try:
-            category_channel_ids = json.dumps({"default_id": default_id, "custom_id": None})
-            try:
-                val = await self.set_voicemaster_setting(guild, "category_channel_ids", category_channel_ids)
-            except Exception as e:
-                logger.error(f"Failed to set category channel ids: {e}")
-                return False
-            if val:
-                logger.info(f"Initialized category channel ids: {category_channel_ids}")
-                return True
-            logger.error("Failed to initialize category channel ids")
-            return False
-        except Exception as e:
-            logger.error(f"Failed to initialize category channel ids: {e}")
-            return False
-        
-    async def set_category_channel_id(self, guild: discord.Guild, category_id: int) -> bool:
-        """Set category channel id for the guild"""
-        try:
-            try:
-                category_channel_ids = await self.get_voicemaster_setting(guild, "category_channel_ids")
-            except Exception as e:
-                logger.error(f"Failed to get category channel ids: {e}")
-                return False
-            if category_channel_ids is not None:
-                category_channel_ids = json.loads(category_channel_ids)
-                category_channel_ids['custom_id'] = category_id
-                category_channel_ids = json.dumps(category_channel_ids)
-                val = await self.set_voicemaster_setting(guild, "category_channel_ids", category_channel_ids)
-                return val
-            return False
-        except Exception as e:
-            logger.error(f"Failed to set category channel id: {e}")
-            return False
-        
-    async def insert_custom_voice_channel(
-            self, channel: discord.VoiceChannel, member: discord.Member
-    ) -> bool:
-        """Insert a custom voice channel into the database"""
-        try:
-            try:
-                default_role_id = await self.get_voicemaster_setting(channel.guild, "default_role_id")
-            except Exception as e:
-                logger.error(f"Failed to get default role: {e}")
-                return False
-            try:
-                custom_channels_json = await self.get_voicemaster_setting(channel.guild, "custom_channels")
-            except Exception as e:
-                logger.error(f"Failed to get custom channels: {e}")
-                return False
-            custom_channels: List[Dict] = json.loads(custom_channels_json)
-            custom_channels.append(
-                {
-                    "channel_id": channel.id,
-                    "owner_id": member.id,
-                    "role_id": default_role_id
-                }
-            )
-            custom_channels_json = json.dumps(custom_channels)
-            val = await self.set_voicemaster_setting(channel.guild, "custom_channels", custom_channels_json)
-            return val
-        except Exception as e:
-            logger.error(f"Failed to insert voice channel: {e}")
-            return False
-        
-    async def delete_custom_voice_channel(self, channel: discord.VoiceChannel) -> bool:
-        """Delete a custom voice channel from the database"""
-        try:
-            try:
-                custom_channels = await self.get_custom_voice_channels(channel.guild)
-            except Exception as e:
-                logger.error(f"Failed to get custom voice channels: {e}")
-                return False
-            for custom_channel in custom_channels:
-                if custom_channel['channel_id'] == channel.id:
-                    custom_channels.remove(custom_channel)
-                    custom_channels_json = json.dumps(custom_channels)
-                    await self.set_voicemaster_setting(channel.guild, "custom_channels", custom_channels_json)
-                    return True
-            return False
-        except Exception as e:
-            logger.error(f"Failed to delete custom voice channel: {e}")
-            return False
-        
-    async def set_custom_voice_channel_role(self, channel: discord.VoiceChannel, role_id: int) -> bool:
-        """Set the role of a custom voice channel"""
-        try:
-            try:
-                custom_channels = await self.get_custom_voice_channels(channel.guild)
-            except Exception as e:
-                logger.error(f"Failed to get custom voice channels: {e}")
-                return False
-            for custom_channel in custom_channels:
-                if custom_channel['channel_id'] == channel.id:
-                    custom_channel['role_id'] = role_id
-                    custom_channels_json = json.dumps(custom_channels)
-                    val = await self.set_voicemaster_setting(channel.guild, "custom_channels", custom_channels_json)
-                    return val
-            return False
-        except Exception as e:
-            logger.error(f"Failed to set custom voice channel role: {e}")
-            return False
-        
-    async def transfer_custom_voice_channel(
-            self, channel: discord.VoiceChannel, new_owner: discord.Member
-    ) -> bool:
-        """Transfer ownership of a custom voice channel"""
-        try:
-            try:
-                custom_channels = await self.get_custom_voice_channels(channel.guild)
-            except Exception as e:
-                logger.error(f"Failed to get custom voice channels: {e}")
-                return False
-            for custom_channel in custom_channels:
-                if custom_channel['channel_id'] == channel.id:
-                    custom_channel['owner_id'] = new_owner.id
-                    custom_channels_json = json.dumps(custom_channels)
-                    val = await self.set_voicemaster_setting(channel.guild, "custom_channels", custom_channels_json)
-                    return val
-            return False
-        except Exception as e:
-            logger.error(f"Failed to transfer custom voice channel: {e}")
-            return False
-    
-async def setup(bot: Sparky):
-    try:
-        await bot.add_cog(Voicemaster(bot))
-    except Exception as e:
-        logger.error(f"ERROR: Failed to setup Voicemaster: {e}")

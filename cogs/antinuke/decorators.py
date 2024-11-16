@@ -8,7 +8,7 @@ class AntinukeFailure(CheckFailure):
 class NotGuildOwner(CheckFailure):
 	pass
 
-def is_antinuke_admin():
+def check_antinuke_admin():
 	"""Check if the user is an antinuke admin"""
 	async def predicate(interaction: Interaction):
 		if interaction.user == interaction.guild.owner:
@@ -28,7 +28,7 @@ def is_antinuke_admin():
 	
 	return check(predicate)
 
-def is_guild_owner():
+def check_guild_owner():
 	"""Check if the user is the guild owner"""
 	def predicate(interaction: Interaction) -> bool:
 		if interaction.user == interaction.guild.owner:

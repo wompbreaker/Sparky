@@ -156,7 +156,7 @@ class Sparky(commands.Bot):
                 color=discord.Color(0x50c7ef),
                 description=f'{lrm}{cooldown} {message.author.mention}: {cd_message}'
             )
-            await ctx.send(embed=embed)
+            await ctx.send(embed)
             return
         
         await self.invoke(ctx)

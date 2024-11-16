@@ -14,9 +14,7 @@ from discord import (
 )
 from helpers import (
 	Context,
-	Emojis,
-	make_embed_success,
-	make_embed_warning
+	Emojis
 )
 from .decorators import *
 from .db import *
@@ -72,7 +70,6 @@ class Logs(commands.Cog):
 			else:
 				await ctx.warning("Failed to initialize logging.")
 		except Exception as e:
-			logger.error(f"ERROR: Failed to initialize logging: {e}")
 			await ctx.error(f"Failed to initialize logging: {e}")		
 
 	@log.command(
@@ -92,7 +89,6 @@ class Logs(commands.Cog):
 			else:
 				await ctx.warning("Failed to reset logging.")
 		except Exception as e:
-			logger.error(f"ERROR: Failed to reset logging: {e}")
 			await ctx.warning(f"Failed to reset logging: {e}")
 
 	@log.command(
@@ -159,7 +155,6 @@ class Logs(commands.Cog):
 				else:
 					ignored_members.append(member_or_channel)
 					await set_log_property(ctx.guild.id, 'ignored_members', json.dumps([member.id for member in ignored_members]))
-					await ctx.warning(f"Member {member_or_channel.mention} has been ignored.")
+					await ctx.success(f"Member {member_or_channel.mention} has been ignored.")
 		except Exception as e:
-			logger.error(f"ERROR: Failed to ignore member or channel: {e}")
 			await ctx.error(f"Failed to ignore member or channel: {e}")

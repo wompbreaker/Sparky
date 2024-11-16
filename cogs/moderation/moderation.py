@@ -5,7 +5,7 @@ import typing
 from typing import Literal, Optional, Union
 import aiomysql
 import discord
-from discord.ext import commands, tasks, menus
+from discord.ext import commands, tasks
 import asyncio
 from bot import Sparky
 import logging

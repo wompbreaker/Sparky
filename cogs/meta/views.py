@@ -6,7 +6,7 @@
 
 from __future__ import annotations
 import logging
-from asyncio import Coroutine
+from collections.abc import Coroutine
 from typing import (
     TYPE_CHECKING,
     Any,
@@ -45,11 +45,6 @@ from discord.ext.commands import (
     BucketType,
     HelpCommand
 )
-from helpers import (
-	Context,
-	SparkyPages,
-	Emojis
-)
 
 import inspect
 import itertools
@@ -57,7 +52,6 @@ from helpers import (
     Context,
     SparkyPages,
     Emojis,
-    Channel,
     make_embed_warning,
     make_embed_error
 )
@@ -351,8 +345,8 @@ class PaginatedHelpCommand(HelpCommand):
             await ctx.error(f'An error occurred: {str(error)}')
 
     async def send_error_message(self, error: str) -> Coroutine[Any, Any, None]:
-        destination: Channel = self.get_destination()
-        await destination.warn(self.context.author, error, ephemeral=True)
+        embed = make_embed_warning(self.context.author, error)
+        await self.context.send(embed)
                         
     def command_not_found(self, string: str):
         return f'Command `{string}` does **not** exist.'

@@ -25,36 +25,9 @@ class Context(DiscordContext):
 		reference = self.message.reference
 		if reference and isinstance(reference.resolved, Message):
 			return reference.resolved
-		
-	async def warn(self, warn_message: str, ephemeral=False, **kwargs) -> Optional[Message]:
-		"""Sends a warning embed with the provided message
-		
-		Parameters
-		----------
-		warn_message : str
-			The message to be displayed in the embed
-
-		ephemeral : bool
-			Whether the message should be ephemeral or not
-			
-		**kwargs : Dict[str, Any]
-			Additional keyword arguments to be passed to the send method
-
-		Returns
-		-------
-		Message
-			The message that was sent
-		"""
-		return await self.send(
-			make_embed_warning(self.author, warn_message),
-			ephemeral=ephemeral, 
-			**kwargs
-		)
 	
-	# alias for warn
 	async def warning(self, warn_message: str, ephemeral=False, **kwargs) -> Optional[Message]:
 		"""Sends a warning embed with the provided message
-		Alias for :meth:`warn`
 		
 		Parameters
 		----------
@@ -123,29 +96,6 @@ class Context(DiscordContext):
 			ephemeral=ephemeral, 
 			**kwargs
 		)
-	
-	# alias for success
-	async def approve(self, success_message: str, ephemeral=False, **kwargs) -> Optional[Message]:
-		"""Send a success embed with the provided message
-		Alias for :meth:`success`
-
-		Parameters
-		----------
-		success_message : str
-			The message to be displayed in the embed
-
-		ephemeral : bool
-			Whether the message should be ephemeral or not
-
-		**kwargs : Dict[str, Any]
-			Additional keyword arguments to be passed to the send method
-
-		Returns
-		-------
-		Message
-			The message that was sent
-		"""
-		return await self.success(success_message, ephemeral=ephemeral, **kwargs)
 	
 	async def send(self, *args, ephemeral=False, **kwargs) -> Optional[Message]:
 		"""Send a message with the provided content or embed

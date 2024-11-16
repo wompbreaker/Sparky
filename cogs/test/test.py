@@ -43,7 +43,7 @@ class Test(commands.Cog):
             description="Click the button to execute the action!",
             color=discord.Color.green()
         )
-        await ctx.send(embed=embed, view=view)
+        await ctx.send(embed, view=view)
 
     @commands.command(
         name="test",

@@ -10,6 +10,7 @@ import logging
 from helpers import (
     Context, 
     Emojis,
+    get_pool,
     handle_extension_error,
     handle_bad_argument,
     handle_bad_union_argument,
@@ -30,21 +31,6 @@ load_dotenv()
 DEFAULT_PREFIX = ','
 
 log = logging.getLogger(__name__)
-
-async def _connect_to_database() -> aiomysql.Pool:
-    """Create a database pool"""
-    try:
-        pool = await aiomysql.create_pool(
-            host=os.getenv('DB_HOST'),
-            port=int(os.getenv('DB_PORT')),
-            user=os.getenv('DB_USER'),
-            password=os.getenv('DB_PASSWORD'),
-            db=os.getenv('DB_DATABASE'),
-            autocommit=True
-        )
-        return pool
-    except Exception as e:
-        log.exception(f"An error has occurred in _connect_to_database: {e}")
 
 description = "A little, cute bot that will grow up and do all sorts of great things!"
 
@@ -96,19 +82,21 @@ class Sparky(commands.Bot):
         await self.change_presence(status=discord.Status.idle, activity=game)
 
     async def setup_hook(self) -> None:
-        self.pool = await _connect_to_database()
-
+        self.pool = await get_pool()
         loaded_count = 0
         total_count = 0
+        cogs_path = Path('cogs')
+        if not cogs_path.exists():
+            raise FileNotFoundError("The cogs directory does not exist.")
 
-        for category in Path('cogs').iterdir():
+        for category in cogs_path.iterdir():
             if not category.is_dir():
                 continue
             elif not (category / "__init__.py").is_file():
                 continue
             total_count += 1
 
-        for category in Path('cogs').iterdir():
+        for category in cogs_path.iterdir():
             if not category.is_dir():
                 continue
             elif not (category / "__init__.py").is_file():
@@ -128,26 +116,29 @@ class Sparky(commands.Bot):
 
     async def on_command_error(self, ctx: Context, error: commands.CommandError) -> None:
         if isinstance(error, commands.CommandInvokeError):
-            handle_extension_error(ctx, error.original)
+            if isinstance(error.original, commands.ExtensionError):
+                await handle_extension_error(ctx, error.original)
+            else:
+                log.error(f"An error occurred in on_command_error: {type(error)}: {error}")
         elif isinstance(error, commands.BadArgument):
-            handle_bad_argument(ctx, error)
+            await handle_bad_argument(ctx, error)
         elif isinstance(error, commands.BadUnionArgument):
-            handle_bad_union_argument(ctx, error)
+            await handle_bad_union_argument(ctx, error)
         elif isinstance(error, commands.BadLiteralArgument):
-            handle_bad_literal_argument(ctx, error)
+            await handle_bad_literal_argument(ctx, error)
         elif isinstance(error, commands.DisabledCommand):
-            handle_disabled_command(ctx, error)
+            await handle_disabled_command(ctx, error)
         elif isinstance(error, commands.ArgumentParsingError):
-            handle_argument_parsing_error(ctx, error)
+            await handle_argument_parsing_error(ctx, error)
         elif isinstance(error, commands.CheckFailure):
-            handle_check_failure(ctx, error)
+            await handle_check_failure(ctx, error)
         elif isinstance(error, commands.MissingRequiredArgument):
             await ctx.send_help(ctx.command)
             return
         elif isinstance(error, commands.CommandNotFound):
             return
         elif isinstance(error, commands.CommandOnCooldown):
-            handle_command_on_cooldown(ctx, error)
+            await handle_command_on_cooldown(ctx, error)
 
     async def process_commands(self, message: discord.Message):
         ctx = await self.get_context(message)

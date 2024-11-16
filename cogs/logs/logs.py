@@ -118,14 +118,11 @@ class Logs(commands.Cog):
 					message = f"All events will be **logged** in {channel.mention}"
 				else:
 					message = f"Event `{option}` will be **logged** in {channel.mention}"
-				embed = make_embed_success(ctx.author, message)
-				await ctx.send(embed=embed)
+				await ctx.success(message)
 			else:
-				embed = make_embed_warning(ctx.author, f"Channel {channel.mention} is already being logged for {option}.")
-				await ctx.send(embed=embed)
+				await ctx.warning(f"Channel {channel.mention} is already being logged for {option}.")
 		except Exception as e:
-			logger.error(f"ERROR: Failed to add channel for logging: {e}")
-			await ctx.send(f"Failed to add channel for logging: {e}")
+			await ctx.error(f"Failed to add channel for logging: {e}")
 		
 
 	@log.command(
@@ -150,19 +147,19 @@ class Logs(commands.Cog):
 				or isinstance(member_or_channel, VoiceChannel):
 				ignored_channels = await get_ignored_channels(ctx.guild)
 				if member_or_channel in ignored_channels:
-					await ctx.send("Channel is already being ignored.")
+					await ctx.warning("Channel is already being ignored.")
 				else:
 					ignored_channels.append(member_or_channel)
 					await set_log_property(ctx.guild.id, 'ignored_channels', json.dumps([channel.id for channel in ignored_channels]))
-					await ctx.send(f"Channel {member_or_channel.mention} has been ignored.")
+					await ctx.success(f"Channel {member_or_channel.mention} has been ignored.")
 			elif isinstance(member_or_channel, Member):
 				ignored_members = await get_ignored_members(ctx.guild)
 				if member_or_channel in ignored_members:
-					await ctx.send("Member is already being ignored.")
+					await ctx.warning("Member is already being ignored.")
 				else:
 					ignored_members.append(member_or_channel)
 					await set_log_property(ctx.guild.id, 'ignored_members', json.dumps([member.id for member in ignored_members]))
-					await ctx.send(f"Member {member_or_channel.mention} has been ignored.")
+					await ctx.warning(f"Member {member_or_channel.mention} has been ignored.")
 		except Exception as e:
 			logger.error(f"ERROR: Failed to ignore member or channel: {e}")
-			await ctx.send(f"Failed to ignore member or channel: {e}")
+			await ctx.error(f"Failed to ignore member or channel: {e}")

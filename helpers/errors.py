@@ -171,9 +171,14 @@ async def handle_check_failure(ctx: Context, error: CheckFailure):
 		message = "You must be the **bot owner** to run this command."
 	else:
 		from cogs.voice.voice import NotVoiceMember, NotVoiceOwner
+		from cogs.logs.logs import LoggingNotInitialized, LoggingAlreadyInitialized
 		if isinstance(error, NotVoiceMember):
 			message = str(error)
 		elif isinstance(error, NotVoiceOwner):
+			message = str(error)
+		elif isinstance(error, LoggingNotInitialized):
+			message = str(error)
+		elif isinstance(error, LoggingAlreadyInitialized):
 			message = str(error)
 
 	logger.error(f"[CheckFailure]: {message}")

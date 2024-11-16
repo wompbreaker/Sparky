@@ -1,11 +1,9 @@
 import json
-from typing import Any, Dict, List, Literal, Optional, Tuple, Union
-import typing
+from typing import Literal, Union
 import discord
 import logging
 from discord.ext import commands
 from bot import Sparky
-from aiomysql import DictCursor
 from discord import (
 	Member, 
 	TextChannel, 
@@ -38,16 +36,6 @@ class Logs(commands.Cog):
 #######################################################################################################
 #                                           LISTENERS                                                 #
 #######################################################################################################
-
-	async def cog_command_error(self, ctx: Context, error: Exception) -> None:
-		if isinstance(error, LoggingNotInitialized):
-			warning_message = "Logging is **not initialized**. Please run `log setup` to initialize logging."
-			warning_embed = make_embed_warning(ctx.author, warning_message)
-			await ctx.send(embed=warning_embed)
-		elif isinstance(error, LoggingAlreadyInitialized):
-			warning_message = "Logging is already **initialized** in this server."
-			warning_embed = make_embed_warning(ctx.author, warning_message)
-			await ctx.send(embed=warning_embed)
 		
 #######################################################################################################
 #                                           COMMANDS                                                  #

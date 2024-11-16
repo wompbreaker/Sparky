@@ -509,8 +509,8 @@ class InterfaceView(discord.ui.View):
         val = await helper_lock_channel(interaction.guild, interaction.user)
         if val:
             message = "Your **voice channel** is now **locked**"
-            success_embed = make_embed_lockdown(interaction.user, True, message)
-            await interaction.response.send_message(embed=success_embed, ephemeral=True)
+            embed = make_embed_lockdown(interaction.user, True, message)
+            await interaction.response.send_message(embed=embed, ephemeral=True)
         else:
             message = "Failed to **lock** the **voice channel**"
             error_embed = make_embed_warning(interaction.user, message)
@@ -523,8 +523,8 @@ class InterfaceView(discord.ui.View):
         val = await helper_unlock_channel(interaction.guild, interaction.user)
         if val:
             message = "Your **voice channel** is now **unlocked**"
-            success_embed = make_embed_lockdown(interaction.user, False, message)
-            await interaction.response.send_message(embed=success_embed, ephemeral=True)
+            embed = make_embed_lockdown(interaction.user, False, message)
+            await interaction.response.send_message(embed=embed, ephemeral=True)
         else:
             message = "Failed to **unlock** the **voice channel**"
             error_embed = make_embed_warning(interaction.user, message)
@@ -537,8 +537,8 @@ class InterfaceView(discord.ui.View):
         val = await helper_ghost_channel(interaction.guild, interaction.user)
         if val:
             message = "Your **voice channel** is now **ghosted**"
-            success_embed = make_embed_visible(interaction.user, False, message)
-            await interaction.response.send_message(embed=success_embed, ephemeral=True)
+            embed = make_embed_visible(interaction.user, False, message)
+            await interaction.response.send_message(embed=embed, ephemeral=True)
         else:
             message = "Failed to **hide** the **voice channel**"
             error_embed = make_embed_warning(interaction.user, message)
@@ -551,8 +551,8 @@ class InterfaceView(discord.ui.View):
         val = await helper_reveal_channel(interaction.guild, interaction.user)
         if val:
             message = "Your **voice channel** is now **visible**"
-            success_embed = make_embed_visible(interaction.user, True, message)
-            await interaction.response.send_message(embed=success_embed, ephemeral=True)
+            embed = make_embed_visible(interaction.user, True, message)
+            await interaction.response.send_message(embed=embed, ephemeral=True)
         else:
             message = "Failed to **reveal** the **voice channel**"
             error_embed = make_embed_warning(interaction.user, message)
@@ -568,8 +568,8 @@ class InterfaceView(discord.ui.View):
             await interaction.response.send_message(embed=warning_embed, ephemeral=True)
         elif val is True:
             message = "You have **claimed** this **voice channel**"
-            success_embed = make_embed_success(interaction.user, message)
-            await interaction.response.send_message(embed=success_embed, ephemeral=True)
+            embed = make_embed_success(interaction.user, message)
+            await interaction.response.send_message(embed=embed, ephemeral=True)
         else:
             message = "You already **own** this **voice channel**"
             warning_embed = make_embed_warning(interaction.user, message)
@@ -626,8 +626,8 @@ class InterfaceView(discord.ui.View):
         val = await helper_increase_limit(interaction.guild, interaction.user)
         if val:
             message = f"Your **voice channel**'s limit changed to `{interaction.user.voice.channel.user_limit}`"
-            success_embed = make_embed_success(interaction.user, message)
-            await interaction.response.send_message(embed=success_embed, ephemeral=True)
+            embed = make_embed_success(interaction.user, message)
+            await interaction.response.send_message(embed=embed, ephemeral=True)
         elif val is False:
             message = "**Channel limit** cannot be greater than `99`"
             error_embed = make_embed_warning(interaction.user, message)
@@ -644,8 +644,8 @@ class InterfaceView(discord.ui.View):
         val = await helper_decrease_limit(interaction.guild, interaction.user)
         if val:
             message = f"Your **voice channel**'s limit changed to `{interaction.user.voice.channel.user_limit}`"
-            success_embed = make_embed_success(interaction.user, message)
-            await interaction.response.send_message(embed=success_embed, ephemeral=True)
+            embed = make_embed_success(interaction.user, message)
+            await interaction.response.send_message(embed=embed, ephemeral=True)
         elif val is False:
             message = "**Channel limit** cannot be less than `0`"
             error_embed = make_embed_warning(interaction.user, message)
@@ -763,7 +763,7 @@ class Voicemaster(commands.Cog):
         usage="Syntax: voicemaster [subcommand] <args>\nExample: voicemaster setup",
         invoke_without_command=True
     )
-    async def voicemaster(self, ctx: commands.Context):
+    async def voicemaster(self, ctx: Context):
         """Make temporary voice channels in your server!"""
         await ctx.send_help(self.voicemaster)
 
@@ -773,7 +773,7 @@ class Voicemaster(commands.Cog):
     )
     @is_voice_owner()
     @commands.bot_has_permissions(manage_channels=True)
-    async def voicemaster_status(self, ctx: commands.Context, *, status: Optional[str]):
+    async def voicemaster_status(self, ctx: Context, *, status: Optional[str]):
         """Set a status for your voice channel"""
         if status is None:
             await ctx.send_help(self.voicemaster_status)
@@ -799,7 +799,7 @@ class Voicemaster(commands.Cog):
         extras={"permissions": ["Manage Guild"]}
     )
     @commands.has_guild_permissions(manage_guild=True)
-    async def voicemaster_category(self, ctx: commands.Context, category: Optional[discord.CategoryChannel]):
+    async def voicemaster_category(self, ctx: Context, category: Optional[discord.CategoryChannel]):
         """Redirect voice channels to custom category"""
         if category is None:
             category_channel_ids = await self.get_category_channel_ids(ctx.guild)
@@ -810,28 +810,18 @@ class Voicemaster(commands.Cog):
                     return
                 val = await self.set_category_channel_id(ctx.guild, None)
                 if val:
-                    message = "Set **VoiceMaster** category back to **default**"
-                    success_embed = make_embed_success(ctx.author, message)
-                    await ctx.send(embed=success_embed)
+                    await ctx.success("Set **VoiceMaster** category back to **default**")
                 else:
-                    message = "Failed to reset category channel"
-                    warning_embed = make_embed_warning(ctx.author, message)
-                    await ctx.send(embed=warning_embed)
+                    await ctx.warning("Failed to reset category channel")
                 return
             else:
-                message = "Failed to change category channel"
-                warning_embed = make_embed_warning(ctx.author, message)
-                await ctx.send(embed=warning_embed)
+                await ctx.warning("Failed to change category channel")
                 return
         val = await self.set_category_channel_id(ctx.guild, category.id)
         if val:
-            message = f"New **VoiceMaster** channels will be created under **{category.name}**"
-            success_embed = make_embed_success(ctx.author, message)
-            await ctx.send(embed=success_embed)
+            await ctx.success(f"New **VoiceMaster** channels will be created under **{category.name}**")
         else:
-            message = "Failed to set category channel"
-            warning_embed = make_embed_warning(ctx.author, message)
-            await ctx.send(embed=warning_embed)
+            await ctx.warning("Failed to set category channel")
 
     @voicemaster.command(
         name="limit",
@@ -839,26 +829,23 @@ class Voicemaster(commands.Cog):
     )
     @is_voice_owner()
     @commands.bot_has_permissions(manage_channels=True)
-    async def voicemaster_limit(self, ctx: commands.Context, limit: Optional[int]):
+    async def voicemaster_limit(self, ctx: Context, limit: Optional[int]):
         """Set a member limit for your voice channel"""
         if limit is None:
             await ctx.send_help(self.voicemaster_limit)
             return
         if limit < 0 or limit > 99:
-            message = "**Channel limit** must be between `0` and `99` members"
-            warning_embed = make_embed_warning(ctx.author, message)
-            await ctx.send(embed=warning_embed)
+            await ctx.warning("**Channel limit** must be between `0` and `99` members")
             return
         voice_channels = ctx.guild.voice_channels
         for voice_channel in voice_channels:
             if ctx.author in voice_channel.members:
                 try:
                     await voice_channel.edit(user_limit=limit)
-                    embed = make_embed_success(ctx.author, f"Your **voice channel**'s limit has been updated to `{limit}`")
-                    await ctx.send(embed=embed)
+                    await ctx.success(f"Your **voice channel**'s limit has been updated to `{limit}`")
                 except Exception as e:
                     logger.error(f"Failed to set limit: {e}")
-                    await ctx.send("Failed to set limit")
+                    await ctx.error("Failed to set limit for the **voice channel**")
 
     @voicemaster.command(
         name="ghost",
@@ -867,30 +854,26 @@ class Voicemaster(commands.Cog):
     )
     @is_voice_owner()
     @commands.bot_has_permissions(manage_channels=True)
-    async def voicemaster_ghost(self, ctx: commands.Context):
+    async def voicemaster_ghost(self, ctx: Context):
         """Hide your voice channel"""
         try:
             val = await helper_ghost_channel(ctx.guild, ctx.author)
             if val:
                 message = "Your **voice channel** is now **ghosted**"
-                success_embed = make_embed_visible(ctx.author, False, message)
-                await ctx.send(embed=success_embed)
+                embed = make_embed_visible(ctx.author, False, message)
+                await ctx.send(embed)
             else:
-                message = "Failed to **hide** the **voice channel**"
-                error_embed = make_embed_warning(ctx.author, message)
-                await ctx.send(embed=error_embed)
+                await ctx.warning("Failed to **hide** the **voice channel**")
         except Exception as e:
             logger.error(f"Failed to ghost channel: {e}")
-            message = "Failed to **hide** the **voice channel**"
-            error_embed = make_embed_warning(ctx.author, message)
-            await ctx.send(embed=error_embed)
+            await ctx.error("Failed to **hide** the **voice channel**")
 
     @voicemaster.command(
         name="claim",
         usage="Syntax: voicemaster claim"
     )
     @is_voice_member()
-    async def voicemaster_claim(self, ctx: commands.Context):
+    async def voicemaster_claim(self, ctx: Context):
         """Claim an inactive voice channel"""
         # check if an owner is already present in the channel
         voice_channel = await self.get_users_voice_channel(ctx.author)
@@ -899,33 +882,23 @@ class Voicemaster(commands.Cog):
                 custom_channels = await self.get_custom_voice_channels(ctx.guild)
             except Exception as e:
                 logger.error(f"Failed to get custom channels: {e}")
-                message = "Failed to **claim** the **voice channel**"
-                error_embed = make_embed_warning(ctx.author, message)
-                await ctx.send(embed=error_embed)
+                await ctx.warning("Failed to **claim** the **voice channel**")
                 return
             for custom_channel in custom_channels:
                 if custom_channel['channel_id'] == voice_channel.id:
                     owner_id = custom_channel['owner_id']
                     if owner_id == ctx.author.id:
-                        message = "You already have **ownership** of this voice channel!"
-                        warning_embed = make_embed_warning(ctx.author, message)
-                        await ctx.send(embed=warning_embed)
+                        await ctx.warning("You already have **ownership** of this **voice channel**")
                         return
                     if owner_id in [member.id for member in voice_channel.members]:
-                        message = "You can't claim this **voice channel** - the owner is still active here"
-                        warning_embed = make_embed_warning(ctx.author, message)
-                        await ctx.send(embed=warning_embed)
+                        await ctx.warning("You can't claim this **voice channel** - the owner is still active here")
                         return
                     try:
                         await self.transfer_custom_voice_channel(voice_channel, ctx.author)
-                        message = "You have **claimed** this **voice channel**"
-                        success_embed = make_embed_success(ctx.author, message)
-                        await ctx.send(embed=success_embed)
+                        await ctx.success("You have **claimed** this **voice channel**")
                     except Exception as e:
                         logger.error(f"Failed to claim channel: {e}")
-                        message = "Failed to **claim** the **voice channel**"
-                        error_embed = make_embed_warning(ctx.author, message)
-                        await ctx.send(embed=error_embed)
+                        await ctx.warning("Failed to **claim** the **voice channel**")
                     return
         raise NotVoiceMember("You're not connected to a **voice channel**")
 
@@ -934,49 +907,31 @@ class Voicemaster(commands.Cog):
         usage="Syntax: voicemaster transfer <user>\nExample: voicemaster transfer @Sparky",
     )
     @is_voice_owner()
-    async def voicemaster_transfer(self, ctx: commands.Context, user: Optional[discord.Member]):
-        """Transfer ownership of your channel to another member"""
-        if user is None:
-            await ctx.send_help(self.voicemaster_transfer)
-            return
-        
+    async def voicemaster_transfer(self, ctx: Context, user: Optional[discord.Member]):
+        """Transfer ownership of your channel to another member"""        
         user_channel = await self.get_users_voice_channel(user)
         if user_channel is None:
-            message = f"{user.mention} is not connected to a **voice channel**"
-            warning_embed = make_embed_warning(ctx.author, message)
-            await ctx.send(embed=warning_embed)
+            await ctx.warning(f"{user.mention} is not connected to a **voice channel**")
             return
         owner_channel = await self.get_users_voice_channel(ctx.author)
         if owner_channel is None:
-            message = "You're not connected to a **voice channel**"
-            warning_embed = make_embed_warning(ctx.author, message)
-            await ctx.send(embed=warning_embed)
+            await ctx.warning("You're not connected to a **voice channel**")
             return
         if user_channel == owner_channel:
             try:
                 if user.id == ctx.author.id:
-                    message = "You already own this **voice channel**!"
-                    warning_embed = make_embed_warning(ctx.author, message)
-                    await ctx.send(embed=warning_embed)
+                    await ctx.warning("You already own this **voice channel**!")
                     return
                 if user.id not in [member.id for member in user_channel.members]:
-                    message = "You can't transfer **ownership** to a member who is not active in this **voice channel**"
-                    warning_embed = make_embed_warning(ctx.author, message)
-                    await ctx.send(embed=warning_embed)
+                    await ctx.warning("You can't transfer **ownership** to a member who is not active in this **voice channel**")
                     return
                 await self.transfer_custom_voice_channel(owner_channel, user)
-                message = f"**Ownership** of the voice channel has been transferred to {user.mention}"
-                success_embed = make_embed_success(ctx.author, message)
-                await ctx.send(embed=success_embed)
+                await ctx.success(f"**Ownership** of the voice channel has been transferred to {user.mention}")
             except Exception as e:
                 logger.error(f"Failed to transfer ownership: {e}")
-                message = "Failed to transfer ownership"
-                warning_embed = make_embed_warning(ctx.author, message)
-                await ctx.send(embed=warning_embed)
+                await ctx.warning("Failed to transfer **ownership**")
         else:
-            message = "You can only **transfer ownership** to users in your **voice channel**"
-            warning_embed = make_embed_warning(ctx.author, message)
-            await ctx.send(embed=warning_embed)
+            await ctx.warning("You can only **transfer ownership** to users in your **voice channel**")
 
     @voicemaster.command(
         name="unghost",
@@ -985,17 +940,15 @@ class Voicemaster(commands.Cog):
     )
     @is_voice_owner()
     @commands.bot_has_guild_permissions(manage_channels=True)
-    async def voicemaster_unghost(self, ctx: commands.Context):
+    async def voicemaster_unghost(self, ctx: Context):
         """Unhide your voice channel"""
         val = await helper_reveal_channel(ctx.guild, ctx.author)
         if val:
             message = "Your **voice channel** is now **visible**"
-            success_embed = make_embed_visible(ctx.author, True, message)
-            await ctx.send(embed=success_embed)
+            embed = make_embed_visible(ctx.author, True, message)
+            await ctx.send(embed)
         else:
-            message = "Failed to **reveal** the **voice channel**"
-            error_embed = make_embed_warning(ctx.author, message)
-            await ctx.send(embed=error_embed)
+            await ctx.warning("Failed to **reveal** the **voice channel**")
 
     @voicemaster.group(
         name="default",
@@ -1005,7 +958,7 @@ class Voicemaster(commands.Cog):
         invoke_without_command=True
     )
     @commands.has_permissions(manage_guild=True, manage_roles=True)
-    async def voicemaster_default(self, ctx: commands.Context):
+    async def voicemaster_default(self, ctx: Context):
         """Configure the default settings for VM channels"""
         await ctx.send_help(ctx.command)
 
@@ -1015,22 +968,16 @@ class Voicemaster(commands.Cog):
         extras={"permissions": ["Manage Guild & Roles"]}
     )
     @commands.has_permissions(manage_guild=True, manage_roles=True)
-    async def voicemaster_default_role(self, ctx: commands.Context, role: Optional[discord.Role]):
+    async def voicemaster_default_role(self, ctx: Context, role: Optional[discord.Role]):
         """Set default role for voice channels"""
         if role is None:
-            message = "I couldn't find the **default join role**, try setting it by providing a role"
-            warning_embed = make_embed_warning(ctx.author, message)
-            await ctx.send(embed=warning_embed)
+            await ctx.warning("I couldn't find the **default join role**, try setting it by providing a role")
             return
         val = await self.set_voicemaster_setting(ctx.guild, "default_role_id", role.id)
         if val:
-            message = f"Set {role.mention} as the **default role** for **VoiceMaster** channels"
-            success_embed = make_embed_success(ctx.author, message)
-            await ctx.send(embed=success_embed)
+            await ctx.success(f"Set {role.mention} as the **default role** for **VoiceMaster** channels")
         else:
-            message = "Failed to set **default role**"
-            warning_embed = make_embed_warning(ctx.author, message)
-            await ctx.send(embed=warning_embed)
+            await ctx.warning("Failed to set **default role**")
 
     @voicemaster_default.command(
         name="name",
@@ -1038,12 +985,13 @@ class Voicemaster(commands.Cog):
         extras={"permissions": ["Manage Guild"]}
     )
     @commands.has_permissions(manage_guild=True)
-    async def voicemaster_default_name(self, ctx: commands.Context, name: Optional[str]):
+    async def voicemaster_default_name(self, ctx: Context, name: Optional[str]):
         """Set default name for new Voice Channels"""
         try:
             db_name = await self.get_voicemaster_setting(ctx.guild, "default_name")
         except Exception as e:
             logger.error(f"Failed to get default name: {e}")
+            await ctx.error("Failed to get **default name**")
             return
         default_name = "{user.name}'s channel"
         if name is None and db_name == default_name:
@@ -1051,14 +999,10 @@ class Voicemaster(commands.Cog):
             return
         if name is None and db_name != default_name:
             await self.set_voicemaster_setting(ctx.guild, "default_name", "{user.name}'s channel")
-            message = "Reset the **default name** for **VoiceMaster** channels"
-            success_embed = make_embed_success(ctx.author, message)
-            await ctx.send(embed=success_embed)
+            await ctx.success("Reset the **default name** for **VoiceMaster** channels")
             return
         await self.set_voicemaster_setting(ctx.guild, "default_name", name)
-        message = f"Set **default name** for **VoiceMaster** channels to `{name}`"
-        success_embed = make_embed_success(ctx.author, message)
-        await ctx.send(embed=success_embed)
+        await ctx.success(f"Set **default name** for **VoiceMaster** channels to `{name}`")
 
     @voicemaster_default.command(
         name="region",
@@ -1066,48 +1010,40 @@ class Voicemaster(commands.Cog):
         extras={"permissions": ["Manage Guild"], "information": ["Use option 'regions' to see available regions"]}
     )
     @commands.has_permissions(manage_guild=True)
-    async def voicemaster_default_region(self, ctx: commands.Context, 
-                                         region: Optional[str] = None):
+    async def voicemaster_default_region(self, ctx: Context, region: Optional[str] = None):
         """Edit default region for new Voice Channels"""
         region = region.lower() if region is not None else None
         region_list = ["automatic", "brazil", "europe", "hongkong", "india", "japan", "russia", "singapore", "southafrica", "sydney", "us-central", "us-east", "us-south", "us-west"]
         if region == "regions":
             message = f"**Voice regions** are: `{', '.join(region_list)}`"
             info_embed = make_embed_info(ctx.author, message)
-            await ctx.send(embed=info_embed)
+            await ctx.send(info_embed)
             return
         try:
             db_region = await self.get_voicemaster_setting(ctx.guild, "default_region")
         except Exception as e:
             logger.error(f"Failed to get default region: {e}")
+            await ctx.error("Failed to get **default region**")
             return
     
         if db_region is False:
-            message = "Failed to get **default region**"
-            warning_embed = make_embed_warning(ctx.author, message)
-            await ctx.send(embed=warning_embed)
+            await ctx.warning("Failed to get **default region**")
             return
         if region is None and db_region is None:
             await ctx.send_help(self.voicemaster_default_region)
             return
         if region is None and db_region is not None:
             await self.set_voicemaster_setting(ctx.guild, "default_region", None)
-            message = "Updated **default region** to `automatic` for **VM channels**"
-            success_embed = make_embed_success(ctx.author, message)
-            await ctx.send(embed=success_embed)
+            await ctx.success("Updated **default region** to `automatic` for **VM channels**")
             return
         if region not in region_list:
-            warning_message = f"**Voice region** must be one of the following: `{', '.join(region_list)}`"
-            warning_embed = make_embed_warning(ctx.author, warning_message)
-            await ctx.send(embed=warning_embed)
+            await ctx.warning(f"**Voice region** must be one of the following: `{', '.join(region_list)}`")
             return
         if region == "automatic":
             region = None
         region_name = region if region is not None else "automatic"
         await self.set_voicemaster_setting(ctx.guild, "default_region", region)
-        message = f"Updated **default region** to `{region_name}` for **VM channels**"
-        success_embed = make_embed_success(ctx.author, message)
-        await ctx.send(embed=success_embed)
+        await ctx.success(f"Updated **default region** to `{region_name}` for **VM channels**")
 
     @voicemaster_default.command(
         name="bitrate",
@@ -1115,20 +1051,13 @@ class Voicemaster(commands.Cog):
         extras={"permissions": ["Manage Guild"], "information": ["Bitrate must be between 8 and 96 kbps"]}
     )
     @commands.has_permissions(manage_guild=True)
-    async def voicemaster_default_bitrate(self, ctx: commands.Context, bitrate: Optional[int]):
+    async def voicemaster_default_bitrate(self, ctx: Context, bitrate: Optional[int]):
         """Set default bitrate for voice channels"""
-        if bitrate is None:
-            await ctx.send_help(self.voicemaster_default_bitrate)
-            return
         if bitrate < 8 or bitrate > 96:
-            message = "**Bitrate** must be between `8` and `96` kbps"
-            warning_embed = make_embed_warning(ctx.author, message)
-            await ctx.send(embed=warning_embed)
+            await ctx.warning("**Bitrate** must be between `8` and `96` kbps")
             return
         await self.set_voicemaster_setting(ctx.guild, "default_bitrate", bitrate)
-        message = f"Updated **default bitrate** to `{bitrate}` for **VM channels**"
-        success_embed = make_embed_success(ctx.author, message)
-        await ctx.send(embed=success_embed)
+        await ctx.success(f"Updated **default bitrate** to `{bitrate}` for **VM channels**")
 
     @voicemaster.command(
         name="setup",
@@ -1138,31 +1067,27 @@ class Voicemaster(commands.Cog):
     @commands.cooldown(1, 20, commands.BucketType.guild)
     @commands.has_permissions(manage_guild=True)
     @commands.bot_has_permissions(manage_channels=True)
-    async def voicemaster_setup(self, ctx: commands.Context):
+    async def voicemaster_setup(self, ctx: Context):
         """Begin VoiceMaster server configuration setup"""
-        logger.info(f"Starting VoiceMaster setup for {ctx.guild}")
         try:
             is_setup = await self.get_voicemaster_setting(ctx.guild, "is_setup")
         except Exception as e:
             logger.error(f"Failed to get voicemaster settings: {e}")
-            message = "Failed to initialize **VoiceMaster**. Please contact support in the [__support server__]({SUPPORT_SERVER})"
-            warning_embed = make_embed_warning(ctx.author, message)
-            await ctx.send(embed=warning_embed)
+            await ctx.warning(f"Failed to initialize **VoiceMaster**. Please contact support in the [__support server__]({SUPPORT_SERVER})")
             return
         if is_setup:
             message = "Server is already configured for **VoiceMaster**, run `voicemaster reset` to reset the **VoiceMaster** server configuration"
             warning_embed = make_embed_warning(ctx.author, message)
-            await ctx.send(embed=warning_embed)
+            await ctx.warning(f"Server is already configured for **VoiceMaster**, run `{ctx.prefix}voicemaster reset` to reset the **VoiceMaster** server configuration")
             return
         if is_setup is None:
             # Voicemaster configuration not found for this server
             in_database = False
         else:
             in_database = True
-        logger.info(f"in_database: {in_database}")
         message = "Starting VoiceMaster setup..."
         progress_embed = make_embed_progress(ctx.author, message)
-        progress_message = await ctx.send(embed=progress_embed)
+        progress_message = await ctx.send(progress_embed)
         guild_channel_count = len(ctx.guild.channels)
         if guild_channel_count > 497:
             message = "VoiceMaster requires at least 3 free channels to setup. Please delete some channels and try again."
@@ -1173,7 +1098,6 @@ class Voicemaster(commands.Cog):
         try:
             # Create category channel
             category_channel = await ctx.guild.create_category(name="Voice Channels", reason="VoiceMaster setup")
-            logger.info(f"Created category channel: {category_channel}")
             # Create text channel with permissions
             text_overwrites = {
                 ctx.guild.default_role: discord.PermissionOverwrite(
@@ -1234,8 +1158,8 @@ class Voicemaster(commands.Cog):
             await progress_message.edit(embed=warning_embed)
             return
         message = "Finished setting up the **VoiceMaster** channels. A category and two channels have been created, you can move the channels or rename them if you want."        
-        success_embed = make_embed_success(ctx.author, message)
-        await progress_message.edit(embed=success_embed)
+        embed = make_embed_success(ctx.author, message)
+        await progress_message.edit(embed=embed)
 
     @voicemaster.command(
         name="configuration",
@@ -1243,15 +1167,13 @@ class Voicemaster(commands.Cog):
         usage="Syntax: voicemaster configuration",
     )
     @is_voice_member()
-    async def voicemaster_configuration(self, ctx: commands.Context):
+    async def voicemaster_configuration(self, ctx: Context):
         """Show Voicemaster configuration"""
         embed = await helper_view_channel(self.bot, ctx.guild, ctx.author)
         if embed:
-            await ctx.send(embed=embed)
+            await ctx.send(embed)
         else:
-            message = "Failed to view the **VoiceMaster** configuration"
-            warning_embed = make_embed_warning(ctx.author, message)
-            await ctx.send(embed=warning_embed)
+            await ctx.warning("Failed to view the **VoiceMaster** configuration")
 
     @voicemaster.command(
         name="reset",
@@ -1262,7 +1184,7 @@ class Voicemaster(commands.Cog):
     @commands.has_permissions(manage_guild=True)
     @commands.bot_has_permissions(manage_channels=True)
     # @commands.cooldown(1, 20, commands.BucketType.guild)
-    async def voicemaster_reset(self, ctx: commands.Context):
+    async def voicemaster_reset(self, ctx: Context):
         """Reset server configuration for VoiceMaster"""
         logger.info(f"Resetting VoiceMaster for {ctx.guild}")
         
@@ -1310,14 +1232,10 @@ class Voicemaster(commands.Cog):
         reset = await self.reset_voicemaster_settings(ctx.guild)
         if reset:
             logger.info("Reset VoiceMaster settings")
-            message = "Reset the **VoiceMaster** configuration."
-            success_embed = make_embed_success(ctx.author, message)
-            await ctx.send(embed=success_embed)
+            await ctx.success("Reset the **VoiceMaster** configuration.")
         else:
             logger.info("Failed to reset VoiceMaster settings")
-            message = "**VoiceMaster** server configuration was not found. Run `voicemaster setup` to configure **VoiceMaster**."
-            warning_embed = make_embed_warning(ctx.author, message)
-            await ctx.send(embed=warning_embed)
+            await ctx.warning(f"**VoiceMaster** server configuration was not found. Run `{ctx.prefix}voicemaster setup` to configure **VoiceMaster**.")
 
     @voicemaster.command(
         name="lock",
@@ -1325,17 +1243,15 @@ class Voicemaster(commands.Cog):
     )
     @is_voice_owner()
     @commands.bot_has_permissions(manage_channels=True)
-    async def voicemaster_lock(self, ctx: commands.Context):
+    async def voicemaster_lock(self, ctx: Context):
         """Lock your voice channel"""
         val = await helper_lock_channel(ctx.guild, ctx.author)
         if val:
             message = "Your **voice channel** is now **locked**"
             embed = make_embed_lockdown(ctx.author, True, message)
-            await ctx.send(embed=embed)
+            await ctx.send(embed)
         else:
-            message = "Failed to **lock** the **voice channel**"
-            warning_embed = make_embed_warning(ctx.author, message)
-            await ctx.send(embed=warning_embed)
+            await ctx.warning("Failed to **lock** the **voice channel**")
 
     @voicemaster.command(
         name="unlock",
@@ -1343,17 +1259,15 @@ class Voicemaster(commands.Cog):
     )
     @is_voice_owner()
     @commands.bot_has_permissions(manage_channels=True)
-    async def voicemaster_unlock(self, ctx: commands.Context):
+    async def voicemaster_unlock(self, ctx: Context):
         """Unlock your voice channel"""
         val = await helper_unlock_channel(ctx.guild, ctx.author)
         if val:
             message = "Your **voice channel** is now **unlocked**"
             embed = make_embed_lockdown(ctx.author, False, message)
-            await ctx.send(embed=embed)
+            await ctx.send(embed)
         else:
-            message = "Failed to **unlock** the **voice channel**"
-            warning_embed = make_embed_warning(ctx.author, message)
-            await ctx.send(embed=warning_embed)
+            await ctx.warning("Failed to **unlock** the **voice channel**")
 
     @voicemaster.command(
         name="role",
@@ -1364,7 +1278,7 @@ class Voicemaster(commands.Cog):
     @is_voice_owner()
     @commands.bot_has_permissions(manage_roles=True)
     @commands.has_guild_permissions(manage_roles=True)
-    async def voicemaster_role(self, ctx: commands.Context, role: Optional[discord.Role]):
+    async def voicemaster_role(self, ctx: Context, role: Optional[discord.Role]):
         """Grant roles to members who join and remove from members leaving"""
         voice_channel = await self.get_users_voice_channel(ctx.author)
         if voice_channel is None:
@@ -1379,37 +1293,24 @@ class Voicemaster(commands.Cog):
                 default_role_id = await self.get_voicemaster_setting(ctx.guild, "default_role_id")
             except Exception as e:
                 logger.error(f"Failed to get default role: {e}")
-                message = "Failed to get **default role**"
-                warning_embed = make_embed_warning(ctx.author, message)
-                await ctx.send(embed=warning_embed)
+                await ctx.warning("Failed to get **default role**")
                 return
             if default_role_id is None:
-                message = "Failed to get **default role**"
-                warning_embed = make_embed_warning(ctx.author, message)
-                await ctx.send(embed=warning_embed)
+                await ctx.warning("Failed to get **default role**")
                 return
             val = await self.set_custom_voice_channel_role(voice_channel, default_role_id)
             if val:
-                message = "Reset the **role** for the **voice channel**"
-                success_embed = make_embed_success(ctx.author, message)
-                await ctx.send(embed=success_embed)
+                await ctx.success("Reset the **role** for the **voice channel**")
             else:
-                message = "Failed to reset the **role** for the **voice channel**"
-                warning_embed = make_embed_warning(ctx.author, message)
-                await ctx.send(embed=warning_embed)
+                await ctx.warning("Failed to reset the **role** for the **voice channel**")
             return
-            
         
         if role >= ctx.guild.me.top_role:
-            message = f"{role.mention} is **higher** than my highest role"
-            warning_embed = make_embed_warning(ctx.author, message)
-            await ctx.send(embed=warning_embed)
+            await ctx.warning(f"{role.mention} is **higher** than my highest role")
             return
         
         if role >= ctx.author.top_role:
-            message = f"{role.mention} is **too high** for you to manage"
-            warning_embed = make_embed_warning(ctx.author, message)
-            await ctx.send(embed=warning_embed)
+            await ctx.warning(f"{role.mention} is **too high** for you to manage")
             return
         
         # assign role to all members in the channel and all the future members
@@ -1432,8 +1333,7 @@ class Voicemaster(commands.Cog):
         if failed > 0:
             message += f" (`{failed}` failed)"
 
-        success_embed = make_embed_success(ctx.author, message)
-        await ctx.send(embed=success_embed)
+        await ctx.success(message)
 
     @voicemaster.command(
         name="bitrate",
@@ -1441,28 +1341,20 @@ class Voicemaster(commands.Cog):
     )
     @is_voice_owner()
     @commands.bot_has_permissions(manage_channels=True)
-    async def voicemaster_bitrate(self, ctx: commands.Context, bitrate: Optional[int]):
-        """Set bitrate for voice channels"""
-        if bitrate is None:
-            await ctx.send_help(self.voicemaster_bitrate)
-            return
-        
+    async def voicemaster_bitrate(self, ctx: Context, bitrate: Optional[int]):
+        """Set bitrate for voice channels"""        
         if bitrate < 8 or bitrate > 96:
-            message = "**Bitrate** must be between `8` and `96` kbps"
-            warning_embed = make_embed_warning(ctx.author, message)
-            await ctx.send(embed=warning_embed)
+            await ctx.warning("**Bitrate** must be between `8` and `96` kbps")
             return
         
         voice_channel = await self.get_users_voice_channel(ctx.author)
         if voice_channel is not None:
             try:
                 await voice_channel.edit(bitrate=bitrate*1000)
-                message = f"Set **bitrate** for **voice channel** to `{bitrate}` kbps"
-                success_embed = make_embed_success(ctx.author, message)
-                await ctx.send(embed=success_embed)
+                await ctx.success(f"Set **bitrate** for **voice channel** to `{bitrate}` kbps")
             except Exception as e:
                 logger.error(f"Failed to set bitrate: {e}")
-                await ctx.send("Failed to set bitrate")
+                await ctx.warning("Failed to set bitrate")
 
     @voicemaster.command(
         name="music",
@@ -1470,16 +1362,11 @@ class Voicemaster(commands.Cog):
     )
     @is_voice_owner()
     @commands.bot_has_permissions(manage_channels=True)
-    async def voicemaster_music(self, ctx: commands.Context, *, option: Optional[str]):
+    async def voicemaster_music(self, ctx: Context, *, option: Optional[str]):
         """Change your channel to a Music Only channel"""
-        if option is None:
-            await ctx.send_help(self.voicemaster_music)
-            return
         option = option.lower()
         if option not in ["on", "off"]:
-            message = f"Invalid **option**: `{option}`. Use `on` or `off`"
-            warning_embed = make_embed_warning(ctx.author, message)
-            await ctx.send(embed=warning_embed)
+            await ctx.warning(f"Invalid **option**: `{option}`. Use `on` or `off`")
             return
         
         voice_channel = await self.get_users_voice_channel(ctx.author)
@@ -1498,10 +1385,9 @@ class Voicemaster(commands.Cog):
             await voice_channel.edit(overwrites=music_overwrites)
         except Exception as e:
             logger.error(f"Failed to set music only channel: {e}")
-            await ctx.send("Failed to set music only channel")
+            await ctx.error("Failed to set music only channel")
         else:
-            success_embed = make_embed_success(ctx.author, message)
-            await ctx.send(embed=success_embed)
+            await ctx.success(message)
 
     @voicemaster.command(
         name="name",
@@ -1510,7 +1396,7 @@ class Voicemaster(commands.Cog):
     @is_voice_owner()
     @commands.bot_has_permissions(manage_channels=True)
     @commands.cooldown(1, 60, commands.BucketType.guild)
-    async def voicemaster_name(self, ctx: commands.Context, *, name: Optional[str]):
+    async def voicemaster_name(self, ctx: Context, *, name: Optional[str]):
         """Set name for voice channels"""
         # get default name from database
         try:
@@ -1534,11 +1420,10 @@ class Voicemaster(commands.Cog):
         if voice_channel is not None:
             try:
                 await voice_channel.edit(name=name)
-                success_embed = make_embed_success(ctx.author, message)
-                await ctx.send(embed=success_embed)
+                await ctx.success(message)
             except Exception as e:
                 logger.error(f"Failed to set name: {e}")
-                await ctx.send("Failed to set name")
+                await ctx.warning("Failed to set name")
 
     @voicemaster.command(
         name="permit",
@@ -1546,22 +1431,17 @@ class Voicemaster(commands.Cog):
     )
     @is_voice_owner()
     @commands.bot_has_permissions(manage_channels=True)
-    async def voicemaster_permit(self, ctx: commands.Context, user: Optional[discord.Member]):
+    async def voicemaster_permit(self, ctx: Context, user: Optional[discord.Member]):
         """Permit a user to join your voice channel"""
-        if user is None:
-            await ctx.send_help(self.voicemaster_permit)
-            return
         overwrites = discord.PermissionOverwrite(connect=True, view_channel=True)
         voice_channel = await self.get_users_voice_channel(ctx.author)
         if voice_channel is not None:
             try:
                 await voice_channel.set_permissions(user, overwrite=overwrites)
-                message = f"Permitted {user.mention} to **join** the **voice channel**"
-                success_embed = make_embed_success(ctx.author, message)
-                await ctx.send(embed=success_embed)
+                await ctx.success(f"Permitted {user.mention} to **join** the **voice channel**")
             except Exception as e:
                 logger.error(f"Failed to permit user: {e}")
-                await ctx.send("Failed to permit user")
+                await ctx.warning("Failed to permit user")
         else:
             raise NotVoiceMember("You're not connected to a **voice channel**")
 
@@ -1571,18 +1451,13 @@ class Voicemaster(commands.Cog):
     )
     @is_voice_owner()
     @commands.bot_has_permissions(manage_channels=True)
-    async def voicemaster_reject(self, ctx: commands.Context, user: Optional[discord.Member]):
+    async def voicemaster_reject(self, ctx: Context, user: Optional[discord.Member]):
         """Reject a user from joining your voice channel"""
-        if user is None:
-            await ctx.send_help(self.voicemaster_reject)
-            return
         overwrites = discord.PermissionOverwrite(connect=False, view_channel=False)
         voice_channel = await self.get_users_voice_channel(ctx.author)
         if voice_channel is not None:
             if user.id == ctx.author.id:
-                message = "You can't reject yourself from joining the **voice channel**"
-                warning_embed = make_embed_warning(ctx.author, message)
-                await ctx.send(embed=warning_embed)
+                await ctx.warning("You can't reject yourself from joining the **voice channel**")
                 return
             if user.id in [member.id for member in voice_channel.members]:
                 try:
@@ -1590,19 +1465,16 @@ class Voicemaster(commands.Cog):
                     await user.move_to(None)
                 except Exception as e:
                     logger.error(f"Failed to disconnect user: {e}")
-                    await ctx.send("Failed to disconnect user")
+                    await ctx.warning(f"Failed to disconnect user {user.mention}")
                     return
             try:
                 await voice_channel.set_permissions(user, overwrite=overwrites)
-                message = f"Rejected {user.mention} from **joining** the **voice channel**"
-                success_embed = make_embed_success(ctx.author, message)
-                await ctx.send(embed=success_embed)
+                await ctx.success(f"Rejected {user.mention} from **joining** the **voice channel**")
             except Exception as e:
                 logger.error(f"Failed to reject user: {e}")
-                await ctx.send("Failed to reject user")
+                await ctx.error("Failed to reject user")
         else:
             raise NotVoiceMember("You're not connected to a **voice channel**")
-
 
     #######################################################################################################
     #                                          INTERFACE                                                  #
@@ -1651,7 +1523,7 @@ class Voicemaster(commands.Cog):
 
     @commands.command(name="dv")
     @commands.is_owner()
-    async def create_dv(self, ctx: commands.Context):
+    async def create_dv(self, ctx: Context):
         discord_view = DisconnectView([ctx.author])
         try:
             await ctx.send("Disconnect a member", view=discord_view)

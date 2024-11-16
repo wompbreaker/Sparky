@@ -1,11 +1,11 @@
-from discord.ext import commands
+from discord.ext.commands import CheckFailure, check
 from helpers import Context
 from aiomysql import DictCursor
 
-class LoggingNotInitialized(commands.CheckFailure):
+class LoggingNotInitialized(CheckFailure):
 	pass
 
-class LoggingAlreadyInitialized(commands.CheckFailure):
+class LoggingAlreadyInitialized(CheckFailure):
 	pass
 
 def logging_initialized():
@@ -18,11 +18,11 @@ def logging_initialized():
 					(ctx.guild.id,)
 				)
 				result = await cur.fetchone()
-				if result:
-					return True
-				else:
-					raise LoggingNotInitialized
-	return commands.check(predicate)
+		if result:
+			return True
+		else:
+			raise LoggingNotInitialized("Logging is **not initialized**. Please run `log setup` to initialize logging.")
+	return check(predicate)
 
 def logging_not_initialized():
 	"""Check if logging is not initialized"""
@@ -34,8 +34,8 @@ def logging_not_initialized():
 					(ctx.guild.id,)
 				)
 				result = await cur.fetchone()
-				if result:
-					raise LoggingAlreadyInitialized
-				else:
-					return True
-	return commands.check(predicate)
+		if result:
+			raise LoggingAlreadyInitialized("Logging is already **initialized** in this server.")
+		else:
+			return True
+	return check(predicate)

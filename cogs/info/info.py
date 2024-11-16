@@ -51,7 +51,7 @@ class Info(commands.Cog):
 			color=user.accent_color
 		)
 		embed.set_image(url=avatar_url)
-		await ctx.send(embed=embed)
+		await ctx.send(embed)
 
 	@commands.command(
 		name='serveravatar', 
@@ -70,7 +70,7 @@ class Info(commands.Cog):
 				color=member.accent_color
 			)
 			embed.set_image(url=member.guild_avatar.url)
-			await ctx.send(embed=embed)
+			await ctx.send(embed)
 			return
 		else:
 			if member == ctx.author:
@@ -78,7 +78,7 @@ class Info(commands.Cog):
 			else:
 				message = f"**{member.mention}** doesn't have a **server avatar** set."
 			embed = make_embed_warning(ctx.author, message)
-			await ctx.send(embed=embed)
+			await ctx.send(embed)
 			return
 
 	@commands.command(
@@ -102,7 +102,7 @@ class Info(commands.Cog):
 			)
 			embed.set_image(url=user.banner.url)
 
-			await ctx.send(embed=embed)
+			await ctx.send(embed)
 			return
 		else:
 			if user == ctx.author:
@@ -110,7 +110,7 @@ class Info(commands.Cog):
 			else:
 				message = f"**{user.mention}** doesn't have a **banner** set."
 			embed = make_embed_warning(ctx.author, message)
-			await ctx.send(embed=embed)
+			await ctx.send(embed)
 			return
 
 	@commands.command(
@@ -131,7 +131,7 @@ class Info(commands.Cog):
 			)
 			embed.set_image(url=member.guild_banner.url)
 
-			await ctx.send(embed=embed)
+			await ctx.send(embed)
 			return
 		else:
 			if member == ctx.author:
@@ -139,7 +139,7 @@ class Info(commands.Cog):
 			else:
 				message = f"**{member.mention}** doesn't have a **server banner** set."
 			embed = make_embed_warning(ctx.author, message)
-			await ctx.send(embed=embed)
+			await ctx.send(embed)
 			return
 
 	@commands.command(
@@ -184,7 +184,7 @@ class Info(commands.Cog):
 		else:
 			embed.set_thumbnail(url=user.default_avatar.url)
 
-		await ctx.send(embed=embed)
+		await ctx.send(embed)
 
 	@commands.command(
 		name='serverinfo',
@@ -199,7 +199,7 @@ class Info(commands.Cog):
 			if guild is None:
 				message = f"I do not **share a server** with the server ID `{guild_id}`"
 				embed = make_embed_warning(ctx.author, message)
-				await ctx.send(embed=embed)
+				await ctx.send(embed)
 				return
 		else:
 			guild = ctx.guild
@@ -262,7 +262,7 @@ class Info(commands.Cog):
 							  f'**Stickers:** {len(guild.stickers)}\n'
 							  f'**Boosters:** {boosters}',
 						inline=True)
-		await ctx.send(embed=embed)
+		await ctx.send(embed)
 
 	@commands.command(
 		name='checkrole', 
@@ -286,7 +286,7 @@ class Info(commands.Cog):
 			message = f"Looks like role {role.mention} has no perms."
 
 		embed = make_embed_info(ctx.author, message)
-		await ctx.send(embed=embed)
+		await ctx.send(embed)
 
 	@commands.command(
 		name='roleinfo',
@@ -314,7 +314,7 @@ class Info(commands.Cog):
 			embed.add_field(name="Role Managed", value=role.managed, inline=True)
 			embed.add_field(name="Role Mentionable", value=role.mentionable, inline=True)
 			embed.add_field(name="Role Members", value=f"{len(role.members)} members", inline=True)
-			await ctx.send(embed=embed)
+			await ctx.send(embed)
 		except Exception as e:
 			logger.error(f"{type(e)} - {e}")
 
@@ -332,7 +332,7 @@ class Info(commands.Cog):
 				if role is None:
 					message = "No **role** specified."
 					embed = make_embed_warning(ctx.author, message)
-					await ctx.send(embed=embed)
+					await ctx.send(embed)
 					return
 			for member in role.members:
 				member_entry = f"{member.name}"
@@ -377,7 +377,7 @@ class Info(commands.Cog):
 			embed.add_field(name="Humans", value=humans)
 			embed.add_field(name="Bots", value=bots)
 			embed.set_author(name=f"{ctx.guild.name} statistics", icon_url=ctx.guild.icon.url)
-			await ctx.send(embed=embed)
+			await ctx.send(embed)
 		except Exception as e:
 			logger.error(e)
 

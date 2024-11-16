@@ -1,3 +1,4 @@
+from __future__ import annotations
 import re
 import logging
 from typing import List, Tuple
@@ -38,7 +39,7 @@ from discord.ext.commands import (
 	DisabledCommand,
 	CommandOnCooldown
 )
-from cogs.voice.voice import NotVoiceMember, NotVoiceOwner
+# from cogs.voice.voice import NotVoiceMember, NotVoiceOwner
 from .managers.context import Context
 from .utils.embeds import make_embed_cooldown
 
@@ -168,10 +169,12 @@ async def handle_check_failure(ctx: Context, error: CheckFailure):
 		message = "This command cannot be used in **private messages**."
 	elif isinstance(error, NotOwner):
 		message = "You must be the **bot owner** to run this command."
-	elif isinstance(error, NotVoiceMember):
-		message = str(error)
-	elif isinstance(error, NotVoiceOwner):
-		message = str(error)
+	else:
+		from cogs.voice.voice import NotVoiceMember, NotVoiceOwner
+		if isinstance(error, NotVoiceMember):
+			message = str(error)
+		elif isinstance(error, NotVoiceOwner):
+			message = str(error)
 
 	logger.error(f"[CheckFailure]: {message}")
 	await ctx.warning(message)

@@ -171,6 +171,8 @@ class Context(DiscordContext):
 				kwargs['embed'] = args[0]
 			elif isinstance(args[0], str):
 				kwargs['content'] = args[0]
+			elif args[0] is None:
+				raise ValueError("Message content cannot be None")
 			else:
 				raise TypeError("Invalid type for message content")
 		else:
@@ -201,6 +203,8 @@ class Context(DiscordContext):
 				kwargs['embed'] = args[0]
 			elif isinstance(args[0], str):
 				kwargs['content'] = args[0]
+			elif args[0] is None:
+				raise ValueError("Message content cannot be None")
 			else:
 				raise TypeError("Invalid type for message content")
 		else:

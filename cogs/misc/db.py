@@ -1,11 +1,9 @@
-from bot import Sparky
 from aiomysql import DictCursor
 import logging
 from typing import Any, Dict, List, Optional
+from helpers import get_pool
 
 logger = logging.getLogger(__name__)
-bot = Sparky()
-
 
 #######################################################################################################
 #                                           GETTERS                                                   #
@@ -14,7 +12,8 @@ bot = Sparky()
 async def is_unique_tag(guild_id: int, tag: str) -> bool:
 	"""Check if a guild has a unique embed tag"""
 	try:
-		async with bot.pool.acquire() as conn:
+		pool = await get_pool()
+		async with pool.acquire() as conn:
 			async with conn.cursor(DictCursor) as cur:
 				await cur.execute(
 					"SELECT * FROM guild_embeds WHERE guild_id = %s;",
@@ -35,7 +34,8 @@ async def is_unique_tag(guild_id: int, tag: str) -> bool:
 async def get_embed_component(guild_id: int, tag: str, component: str) -> Optional[Any]:
 	"""Get an embed component from the database"""
 	try:
-		async with bot.pool.acquire() as conn:
+		pool = await get_pool()
+		async with pool.acquire() as conn:
 			async with conn.cursor(DictCursor) as cur:
 				await cur.execute(
 					"SELECT * FROM embed WHERE guild_id = %s AND tag = %s;",
@@ -97,7 +97,8 @@ async def get_field(guild_id: int, tag: str, field_name: str) -> Optional[Dict]:
 async def set_embed_component(guild_id: int, tag: str, component: str, value: Any) -> bool:
 	"""Set an embed component in the database"""
 	try:
-		async with bot.pool.acquire() as conn:
+		pool = await get_pool()
+		async with pool.acquire() as conn:
 			async with conn.cursor(DictCursor) as cur:
 				await cur.execute(
 					f"UPDATE embed SET {component} = %s WHERE guild_id = %s AND tag = %s;",

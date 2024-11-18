@@ -1,21 +1,21 @@
 import asyncio
 import os
+import logging
+import aiomysql
+from pathlib import Path
 from typing import Optional, Literal
 
 import discord
 from discord.ext import commands
 
 from bot import Sparky
-import aiomysql
-import logging
-from pathlib import Path
-from .db import init_prefix, deinit_prefix
 from helpers import (
 	Emojis,
 	Context,
 	make_embed_success,
 	make_embed_loading
 )
+from .db import init_prefix, deinit_prefix
 
 logger = logging.getLogger(__name__)
 

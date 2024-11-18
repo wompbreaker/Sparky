@@ -14,7 +14,7 @@ from helpers import (
 	make_embed_warning
 )
 
-perm_list = [
+PERM_LIST = [
 	'administrator', 'ban_members', 'kick_members', 'manage_channels', 
 	'manage_permissions', 'manage_emojis', 'manage_emojis_and_stickers', 
 	'manage_guild', 'manage_roles', 'manage_webhooks', 'moderate_members'
@@ -31,7 +31,7 @@ class ConfirmView(View):
 	@staticmethod
 	def make_embed_permissions(interaction: Interaction) -> Embed:
 		perm_string = ""
-		for perm in perm_list:
+		for perm in PERM_LIST:
 			perm_string += f"{perm}, "        
 		embed = Embed(
 			title="List of permissions",

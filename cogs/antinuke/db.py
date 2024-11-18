@@ -1,7 +1,9 @@
-from typing import Optional, List, Tuple, Literal
-from aiomysql import DictCursor
 import logging
 import json
+from typing import Optional, List, Tuple, Literal
+
+from aiomysql import DictCursor
+
 from helpers import get_pool
 
 log = logging.getLogger(__name__)
@@ -24,9 +26,9 @@ __all__ = (
 	'set_vanity_settings'
 )
 
-#######################################################################################################
-#                                           INITIALIZATION                                            #
-#######################################################################################################
+###############################################################################
+#                                INITIALIZATION				                   #
+###############################################################################
 
 async def init_antinuke_system(guild_id: int) -> bool:
 	"""Initialize the Antinuke system for a guild
@@ -46,7 +48,8 @@ async def init_antinuke_system(guild_id: int) -> bool:
 		async with pool.acquire() as conn:
 			async with conn.cursor(DictCursor) as cur:
 				await cur.execute(
-					"INSERT INTO antinuke_system (guild_id) VALUES (%s) ON DUPLICATE KEY UPDATE guild_id = guild_id;",
+					"INSERT INTO antinuke_system (guild_id) VALUES (%s) "
+					"ON DUPLICATE KEY UPDATE guild_id = guild_id;",
 					(guild_id,)
 				)
 				return True
@@ -80,9 +83,9 @@ async def deinit_antinuke_system(guild_id: int) -> bool:
 		log.error(f"Failed to deinitialize Antinuke system: {e}")
 		return False
 
-#######################################################################################################
-#                                           GETTERS                                                   #
-#######################################################################################################
+###############################################################################
+#                             	  GETTERS                                      #
+###############################################################################
 
 async def get_antinuke_setting(
 	guild_id: int, 
@@ -319,9 +322,9 @@ async def get_permissions_settings(
 		log.error(f"Failed to get permissions settings: {e}")
 		raise e
 	
-#######################################################################################################
+###############################################################################
 #                                           SETTERS                                                   #
-#######################################################################################################
+###############################################################################
 
 async def set_antinuke_setting(
 	guild_id: int, 

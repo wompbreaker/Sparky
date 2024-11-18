@@ -2,7 +2,6 @@ from logging import getLogger
 
 logger = getLogger(__name__)
 
-
 async def setup(bot) -> None:
 	from .meta import Meta
 	try:

@@ -19,7 +19,7 @@ from helpers import (
 from .decorators import *
 from .db import *
 
-logger = logging.getLogger(__name__)
+log = logging.getLogger(__name__)
 
 class Logs(commands.Cog):
 	"""Logging commands for your server"""
@@ -41,7 +41,7 @@ class Logs(commands.Cog):
 
 	@commands.group(
 		name='log',
-		aliases=['logging', 'logger', 'logs'],
+		aliases=['logging', 'log', 'logs'],
 		usage='Syntax: log [subcommand] <args>\nExample: log add #logs messages',
 		extras={'permissions': ['manage guild']},
 		invoke_without_command=True

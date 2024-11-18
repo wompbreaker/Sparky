@@ -18,7 +18,7 @@ from helpers import (
 	make_embed_success
 )
 
-logger = logging.getLogger(__name__)
+log = logging.getLogger(__name__)
 
 SCISSORS = Emojis().get_stripped_emoji('scissors')
 DENY = Emojis().get_stripped_emoji('cancel')
@@ -74,7 +74,7 @@ class BaseStealView(View):
 				f"An error has occurred: {e}"
 			)
 			await interaction.response.send_message(embed=embed, ephemeral=True)
-			logger.error(f"Exception in Fun, cancel method: {e}")
+			log.error(f"Exception in Fun, cancel method: {e}")
 
 	@button(emoji=SCISSORS, style=ButtonStyle.gray)
 	async def crop(self, interaction: Interaction, button: Button):
@@ -130,7 +130,7 @@ class BaseStealView(View):
 			)
 			await interaction.response.send_message(embed=embed, ephemeral=True)
 		except Exception as e:
-			logger.error(f"Exception in Fun, steal_emoji_or_sticker, crop_callback: {e}")
+			log.error(f"Exception in Fun, steal_emoji_or_sticker, crop_callback: {e}")
 			embed = make_embed_warning(
 				interaction.user,
 				"Failed to create sticker."

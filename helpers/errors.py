@@ -43,7 +43,7 @@ from discord.ext.commands import (
 from .managers.context import Context
 from .utils.embeds import make_embed_cooldown
 
-logger = logging.getLogger(__name__)
+log = logging.getLogger(__name__)
 
 __all__ = (
 	'handle_extension_error',
@@ -68,7 +68,7 @@ async def handle_extension_error(ctx: Context, error: ExtensionError) -> None:
 	if isinstance(error, ExtensionNotFound):
 		message = f"Extension [{error.name}] not found."
 	
-	logger.error(f"[ExtensionError]: {message}")
+	log.error(f"[ExtensionError]: {message}")
 	await ctx.error(message)
 
 async def handle_bad_argument(ctx: Context, error: BadArgument) -> None:
@@ -103,7 +103,7 @@ async def handle_bad_argument(ctx: Context, error: BadArgument) -> None:
 	else:
 		message = str(error).replace('"', '**')
 
-	logger.error(f"[BadArgument]: {message}")
+	log.error(f"[BadArgument]: {message}")
 	await ctx.error(message)
 
 async def handle_bad_union_argument(ctx: Context, error: BadUnionArgument) -> None:
@@ -122,7 +122,7 @@ async def handle_bad_union_argument(ctx: Context, error: BadUnionArgument) -> No
 	converters = error.converters
 	message = f"Could not convert **{param.name.replace('_', ' ')}** into `{list_converters(converters)}`"
 
-	logger.error(f"[BadUnionArgument]: {message}")
+	log.error(f"[BadUnionArgument]: {message}")
 	await ctx.warning(message)
 
 async def handle_bad_literal_argument(ctx: Context, error: BadLiteralArgument) -> None:
@@ -141,7 +141,7 @@ async def handle_argument_parsing_error(ctx: Context, error: ArgumentParsingErro
 	elif isinstance(error, ExpectedClosingQuoteError):
 		message = f"Expected closing quote not found: {error.close_quote}"
 	
-	logger.error(f"[ArgumentParsingError]: {message}")
+	log.error(f"[ArgumentParsingError]: {message}")
 	await ctx.warning(message)
 
 async def handle_check_failure(ctx: Context, error: CheckFailure):
@@ -181,16 +181,16 @@ async def handle_check_failure(ctx: Context, error: CheckFailure):
 		elif isinstance(error, LoggingAlreadyInitialized):
 			message = str(error)
 
-	logger.error(f"[CheckFailure]: {message}")
+	log.error(f"[CheckFailure]: {message}")
 	await ctx.warning(message)
 
 async def handle_disabled_command(ctx: Context, error: DisabledCommand) -> None:
 	message = "This command is **disabled**."
-	logger.error(f"[DisabledCommand]: {message}")
+	log.error(f"[DisabledCommand]: {message}")
 	await ctx.warning(message)
 
 async def handle_command_on_cooldown(ctx: Context, error: CommandOnCooldown) -> None:
 	message = f"Please wait **{error.retry_after:.2f} seconds** before using this command again."
 	embed = make_embed_cooldown(ctx.author, message)
-	logger.error(f"[CommandOnCooldown]: {message}")
+	log.error(f"[CommandOnCooldown]: {message}")
 	await ctx.send(embed)

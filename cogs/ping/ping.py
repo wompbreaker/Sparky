@@ -14,16 +14,16 @@ from helpers import (
     generate_google_maps_link
 )
 
-logger = logging.getLogger(__name__)
+log = logging.getLogger(__name__)
 
 class Ping(commands.Cog):
     """Commands for checking the bot's latency and uptime."""
     def __init__(self, bot: Sparky):
         try:
             self.bot: Sparky = bot
-            logger.info(f"{self.qualified_name} initialized successfully!")
+            log.info(f"{self.qualified_name} initialized successfully!")
         except Exception as e:
-            logger.error(f"ERROR: Failed to initialize {self.qualified_name}: {e}")
+            log.error(f"ERROR: Failed to initialize {self.qualified_name}: {e}")
 
     @property
     def display_emoji(self) -> discord.PartialEmoji:

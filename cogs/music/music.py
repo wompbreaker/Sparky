@@ -4,7 +4,7 @@ import discord
 from discord.ext import commands
 from bot import Sparky
 
-logger = logging.getLogger(__name__)
+log = logging.getLogger(__name__)
 
 class Music(commands.Cog):
 	"""Music controls for your server"""
@@ -25,7 +25,7 @@ class Music(commands.Cog):
 			
 			await channel.connect()
 		except Exception as e:
-			logger.exception(f"Error: {e}")
+			log.exception(f"Error: {e}")
 
 	@commands.command()
 	async def stop(self, ctx):

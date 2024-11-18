@@ -13,7 +13,7 @@ from helpers import (
 	make_embed_visible
 )
 
-logger = getLogger(__name__)
+log = getLogger(__name__)
 
 class DisconnectSelect(discord.ui.Select):
 	def __init__(self, voice_members: List[discord.Member]):
@@ -40,7 +40,7 @@ class DisconnectSelect(discord.ui.Select):
 				await member.move_to(None)
 				success += 1
 			except Exception as e:
-				logger.error(f"Failed to disconnect member: {e}")
+				log.error(f"Failed to disconnect member: {e}")
 				failed += 1
 				continue
 		message = f"Successfully **disconnected** `{success}` members"
@@ -74,7 +74,7 @@ class ActivitySelect(discord.ui.Select):
 				options=options, min_values=1, max_values=1
 			)
 		except Exception as e:
-			logger.exception(f"Failed to create activity options: {e}")
+			log.exception(f"Failed to create activity options: {e}")
 
 	def activity_cover_url(self, activity_id: int) -> str:
 		base_url = f"https://discord.com/api/v10/oauth2/applications/{activity_id}/assets"
@@ -110,7 +110,7 @@ class ActivitySelect(discord.ui.Select):
 			invite_view = ActivityInviteView(invite_url)
 			await interaction.response.send_message(embed=embed, view=invite_view, ephemeral=True)
 		except Exception as e:
-			logger.exception(f"Failed to start activity: {e}")
+			log.exception(f"Failed to start activity: {e}")
 			await interaction.response.send_message("Failed to start the activity", ephemeral=True)
 
 class ActivityView(discord.ui.View):
@@ -119,7 +119,7 @@ class ActivityView(discord.ui.View):
 			super().__init__(timeout=None)
 			self.add_item(ActivitySelect())
 		except Exception as e:
-			logger.exception(f"Failed to create activity view: {e}")
+			log.exception(f"Failed to create activity view: {e}")
 
 class ActivityInviteButton(discord.ui.Button):
 	def __init__(self, activity_url: str):
@@ -131,7 +131,7 @@ class ActivityInviteView(discord.ui.View):
 			super().__init__(timeout=None)
 			self.add_item(ActivityInviteButton(activity_url))
 		except Exception as e:
-			logger.exception(f"Failed to create invite view: {e}")
+			log.exception(f"Failed to create invite view: {e}")
 
 class InterfaceView(discord.ui.View):
 	def __init__(self):
@@ -143,7 +143,7 @@ class InterfaceView(discord.ui.View):
 			try:
 				custom_channels = await get_custom_voice_channels(user.guild)
 			except Exception as e:
-				logger.error(f"Failed to get custom voice channels: {e}")
+				log.error(f"Failed to get custom voice channels: {e}")
 				return False
 			for voice_channel in voice_channels:
 				if voice_channel.id in [custom_channel['channel_id'] for custom_channel in custom_channels]:
@@ -157,7 +157,7 @@ class InterfaceView(discord.ui.View):
 			try:
 				custom_channels = await get_custom_voice_channels(user.guild)
 			except Exception as e:
-				logger.error(f"Failed to get custom voice channels: {e}")
+				log.error(f"Failed to get custom voice channels: {e}")
 				return False
 			for voice_channel in voice_channels:
 				if voice_channel.id in [custom_channel['channel_id'] for custom_channel in custom_channels]:
@@ -294,7 +294,7 @@ class InterfaceView(discord.ui.View):
 			activity_view = ActivityView()
 			await interaction.response.send_message(embed=embed, view=activity_view, ephemeral=True)
 		except Exception as e:
-			logger.error(f"Failed to start activity: {e}")
+			log.error(f"Failed to start activity: {e}")
 			message = "Failed to **start** the **activity**"
 			error_embed = make_embed_warning(interaction.user, message)
 			await interaction.response.send_message(embed=error_embed, ephemeral=True)

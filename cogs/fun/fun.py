@@ -12,7 +12,7 @@ from helpers import Context, Emojis
 if TYPE_CHECKING:
     from bot import Sparky
 
-logger = logging.getLogger(__name__)
+log = logging.getLogger(__name__)
   
 class Fun(commands.Cog):
     """Commands for fun and entertainment"""
@@ -20,9 +20,9 @@ class Fun(commands.Cog):
     def __init__(self, bot: Sparky):
         try:
             self.bot: Sparky = bot
-            logger.info(f"{self.qualified_name} initialized successfully!")
+            log.info(f"{self.qualified_name} initialized successfully!")
         except Exception as e:
-            logger.error(f"ERROR: Failed to initialize {self.qualified_name}: {e}")
+            log.error(f"ERROR: Failed to initialize {self.qualified_name}: {e}")
 
     @property
     def display_emoji(self) -> discord.PartialEmoji:
@@ -74,7 +74,7 @@ class Fun(commands.Cog):
             await ctx.warning("Please reply to a message with this command to get emojis/stickers.")
 
         except Exception as e:
-            logger.error(f"Exception in Fun steal_emoji_or_sticker: {e}")
+            log.error(f"Exception in Fun steal_emoji_or_sticker: {e}")
             await ctx.send("An error occurred while processing the sticker.")
 
     @commands.command(
@@ -123,7 +123,7 @@ class Fun(commands.Cog):
             await ctx.warning("Please reply to a message with this command to get emojis/stickers.")
 
         except Exception as e:
-            logger.error(f"Exception in Fun steal_emoji_or_sticker: {e}")
+            log.error(f"Exception in Fun steal_emoji_or_sticker: {e}")
             await ctx.send("An error occurred while processing the sticker.")
 
     @commands.command(
@@ -171,7 +171,7 @@ class Fun(commands.Cog):
             await ctx.warning("Please reply to a message with this command to get emojis/stickers.")
 
         except Exception as e:
-            logger.error(f"Exception in Fun steal_emoji_or_sticker: {e}")
+            log.error(f"Exception in Fun steal_emoji_or_sticker: {e}")
             await ctx.error("An error occurred while processing the sticker.")
 
     async def steal_sticker(self, ctx: Context, sticker_item: discord.StickerItem):

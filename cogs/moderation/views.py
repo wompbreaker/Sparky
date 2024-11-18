@@ -23,7 +23,7 @@ from helpers import (
 )
 import logging
 
-logger = logging.getLogger(__name__)
+log = logging.getLogger(__name__)
 
 __all__ = (
 	"IgnoredChannelsPageSource",
@@ -105,4 +105,4 @@ class ConfirmView(View):
 				interaction.user, f"Deleting the message failed: {e}"
 			)
 			await interaction.response.send_message(embed=embed, ephemeral=True)
-			logger.error(f"Deleting the message failed: {e}")
+			log.error(f"Deleting the message failed: {e}")

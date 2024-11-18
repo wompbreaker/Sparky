@@ -3,7 +3,7 @@ import requests
 from random import randint
 import logging
 
-logger = logging.getLogger(__name__)
+log = logging.getLogger(__name__)
 
 __all__ = ("get_IP_full_info", "generate_google_maps_link")
 
@@ -49,7 +49,7 @@ def _get_ip_geolocation(ip_address):
 		is_proxy = data['is_proxy'] or "*no data found*"
 		return latitude, longitude, timezone, auto_sys_number, auto_sys, is_proxy
 	else:
-		logger.error(f"Failed to fetch geolocation information. Status code: {response.status_code}")
+		log.error(f"Failed to fetch geolocation information. Status code: {response.status_code}")
 		return 44.9573, -93.0515, "-05:00", "5079", "T-Mobile USA Inc.", False
 
 def get_IP_full_info():

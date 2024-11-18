@@ -60,7 +60,7 @@ if TYPE_CHECKING:
 	from bot import Sparky
 import logging
 
-logger = logging.getLogger(__name__)
+log = logging.getLogger(__name__)
 
 WARNING = Emojis().get_emoji('warning')
 COOLDOWN = Emojis().get_emoji('cooldown')
@@ -75,7 +75,7 @@ class CancelButton(Button):
 		try:
 			await interaction.message.delete()
 		except Exception as e:
-			logger.error(f"Deleting the message failed: {e}")
+			log.error(f"Deleting the message failed: {e}")
 
 class InviteView(View):
 	response: Message
@@ -91,14 +91,14 @@ class InviteView(View):
 			self.add_item(Button(label="Invite me!", url=self.url, style=ButtonStyle.link))
 			self.add_item(CancelButton())
 		except Exception as e:
-			logger.error(f"Failed to initialize InviteView: {e}")
+			log.error(f"Failed to initialize InviteView: {e}")
 
 	async def on_timeout(self) -> None:
 		if self.response.channel and self.response:
 			try:
 				await self.response.edit(view=None)
 			except Exception as e:
-				logger.error(f"Failed to clear view on timeout: {e}")
+				log.error(f"Failed to clear view on timeout: {e}")
 
 	async def interaction_check(self, interaction: Interaction) -> bool:
 		if interaction.user != self.ctx.author:

@@ -8,7 +8,7 @@ from .views import EmbedView
 # if TYPE_CHECKING:
 from bot import Sparky
 
-logger = logging.getLogger(__name__)
+log = logging.getLogger(__name__)
 
 DEFAULT_AUTHOR_TEXT = "embed creation"
 DEFAULT_DESCRIPTION = ("Use the buttons below to customize this embed. "
@@ -20,9 +20,9 @@ class Misc(commands.Cog):
 	def __init__(self, bot: Sparky):
 		try:
 			self.bot: Sparky = bot
-			logger.info(f"{self.qualified_name} initialized successfully!")
+			log.info(f"{self.qualified_name} initialized successfully!")
 		except Exception as e:
-			logger.error(f"ERROR: Failed to initialize {self.qualified_name}: {e}")
+			log.error(f"ERROR: Failed to initialize {self.qualified_name}: {e}")
 
 	@property
 	def display_emoji(self) -> discord.PartialEmoji:
@@ -62,7 +62,7 @@ class Misc(commands.Cog):
 			view = EmbedView(ctx, name)
 			await ctx.send(embed, view=view)
 		except Exception as e:
-			logger.error(f"An error occurred in {self.qualified_name}: {e}")
+			log.error(f"An error occurred in {self.qualified_name}: {e}")
 			await ctx.error(f"An error occurred in create_embed: {e}")
 
 	@embed_group.command(
@@ -84,5 +84,5 @@ class Misc(commands.Cog):
 			embed.set_author(name="embed preview")
 			await ctx.send(embed)
 		except Exception as e:
-			logger.error(f"An error occurred in {self.qualified_name}: {e}")
+			log.error(f"An error occurred in {self.qualified_name}: {e}")
 			await ctx.error(f"An error occurred: {e}")

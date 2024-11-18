@@ -1,7 +1,7 @@
 from aiomysql import DictCursor, Pool
 import logging
 
-logger = logging.getLogger(__name__)
+log = logging.getLogger(__name__)
 
 async def init_prefix(pool: Pool, guild_id: int):
 	DEFAULT_PREFIX = ","
@@ -13,7 +13,7 @@ async def init_prefix(pool: Pool, guild_id: int):
 					(guild_id, DEFAULT_PREFIX, True,)
 				)
 	except Exception as e:
-		logger.error(f"Error in init_prefix: {e}")
+		log.error(f"Error in init_prefix: {e}")
 
 async def deinit_prefix(pool: Pool, guild_id: int):
 	try:
@@ -23,7 +23,7 @@ async def deinit_prefix(pool: Pool, guild_id: int):
 					"DELETE FROM guild_prefixes WHERE guild_id = %s;",
 					(guild_id,)
 				)
-		logger.info(f"deinitialized prefix for guild with ID: {guild_id}")
+		log.info(f"deinitialized prefix for guild with ID: {guild_id}")
 	except Exception as e:
-		logger.error(f"Error in deinit_prefix: {e}")
+		log.error(f"Error in deinit_prefix: {e}")
 		

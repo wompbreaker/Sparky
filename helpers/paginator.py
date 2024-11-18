@@ -36,7 +36,7 @@ from discord.ui import (
 if TYPE_CHECKING:
 	from bot import Sparky
 
-logger = logging.getLogger(__name__)
+log = logging.getLogger(__name__)
 
 RIGHT = Emojis().get_stripped_emoji("right")
 LEFT = Emojis().get_stripped_emoji("left")
@@ -354,7 +354,7 @@ class SparkyPages(View):
 				)
 				await interaction.response.send_message(embed=embed, ephemeral=True)
 		except Exception as e:
-			logger.exception(f"Exception in Fun, crop method: {e}")
+			log.exception(f"Exception in Fun, crop method: {e}")
 			embed = make_embed_error(
 				interaction.user, "An unknown error occurred, sorry"
 			)

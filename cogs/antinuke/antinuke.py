@@ -21,7 +21,7 @@ from .helper import *
 from .views import ConfirmView
 from .db import *
 
-logger = logging.getLogger(__name__)
+log = logging.getLogger(__name__)
 
 perm_list = [
 	'administrator', 'ban_members', 'kick_members', 'manage_channels', 
@@ -37,9 +37,9 @@ class Antinuke(commands.Cog):
 	def __init__(self, bot: Sparky):
 		try:
 			self.bot: Sparky = bot
-			logger.info(f"{self.qualified_name} initialized successfully!")
+			log.info(f"{self.qualified_name} initialized successfully!")
 		except Exception as e:
-			logger.error(f"ERROR: Failed to initialize {self.qualified_name}: {e}")
+			log.error(f"ERROR: Failed to initialize {self.qualified_name}: {e}")
 
 	@property
 	def display_emoji(self) -> discord.PartialEmoji:
@@ -80,7 +80,7 @@ class Antinuke(commands.Cog):
 							(guild.id,)
 						)
 		except Exception as e:
-			logger.error(f"{type(e)} error in on_guild_join: {e}")
+			log.error(f"{type(e)} error in on_guild_join: {e}")
 
 	@commands.Cog.listener()
 	async def on_guild_remove(self, guild: discord.Guild):
@@ -98,7 +98,7 @@ class Antinuke(commands.Cog):
 							(guild.id,)
 						)
 		except Exception as e:
-			logger.error(f"{type(e)} error in on_guild_remove: {e}")
+			log.error(f"{type(e)} error in on_guild_remove: {e}")
 
 	@commands.Cog.listener()
 	async def on_member_join(self, member: discord.Member):
@@ -110,7 +110,7 @@ class Antinuke(commands.Cog):
 				if not whitelisted:
 					await member.kick(reason="Botadd antinuke enabled")
 		except Exception as e:
-			logger.error(f"{type(e)} error in on_member_join: {e}")
+			log.error(f"{type(e)} error in on_member_join: {e}")
 
 	@commands.Cog.listener()
 	async def on_guild_update(self, guild_before: discord.Guild, guild_after: discord.Guild):
@@ -130,7 +130,7 @@ class Antinuke(commands.Cog):
 					try:
 						await owner_dm.send(embed=embed)
 					except Exception as e:
-						logger.error(f"{type(e)} error: Failed to DM {guild_after.owner.name}. {e}")
+						log.error(f"{type(e)} error: Failed to DM {guild_after.owner.name}. {e}")
 
 					for admin in antinuke_admins:
 						if int(admin) == guild_after.owner.id:
@@ -140,10 +140,10 @@ class Antinuke(commands.Cog):
 						try:
 							await dm_channel.send(embed=embed)
 						except Exception as e:
-							logger.error(f"{type(e)} error: Failed to DM {admin_user.name}. {e}")
+							log.error(f"{type(e)} error: Failed to DM {admin_user.name}. {e}")
 							continue
 		except Exception as e:
-			logger.error(f"{type(e)} error: {e}")
+			log.error(f"{type(e)} error: {e}")
 
 	async def unavailable(self, interaction: discord.Interaction):
 		message = "This command is currently unavailable"
@@ -338,7 +338,7 @@ class Antinuke(commands.Cog):
 				embed = make_embed_error(interaction.user, message)
 				await interaction.response.send_message(embed=embed)
 		except Exception as e:
-			logger.error(f"{type(e)} error in antinunke botadd: {e}")
+			log.error(f"{type(e)} error in antinunke botadd: {e}")
 			message = f"An error occurred: **{e}**"
 			embed = make_embed_error(interaction.user, message)
 			await interaction.response.send_message(embed=embed, ephemeral=True)
@@ -386,7 +386,7 @@ class Antinuke(commands.Cog):
 		try:
 			ret = await get_antinuke_parameters(interaction.guild.id, 'webhook')
 		except Exception as e:
-			logger.error(f"{type(e)} error in antinuke webhook: {e}")
+			log.error(f"{type(e)} error in antinuke webhook: {e}")
 			message = f"{type(e)} Error: {e} "
 			embed = make_embed_error(interaction.user, message)
 			await interaction.response.send_message(embed=embed)
@@ -481,7 +481,7 @@ class Antinuke(commands.Cog):
 		try:
 			ret = await get_antinuke_parameters(interaction.guild.id, 'channel')
 		except Exception as e:
-			logger.error(f"{type(e)} error in antinuke channel: {e}")
+			log.error(f"{type(e)} error in antinuke channel: {e}")
 			message = f"{type(e)} Error: {e} "
 			embed = make_embed_error(interaction.user, message)
 			await interaction.response.send_message(embed=embed)
@@ -571,7 +571,7 @@ class Antinuke(commands.Cog):
 		try:
 			ret = await get_vanity_settings(interaction.guild.id)
 		except Exception as e:
-			logger.error(f"{type(e)} error in antinuke vanity: {e}")
+			log.error(f"{type(e)} error in antinuke vanity: {e}")
 			message = f"{type(e)} Error: {e} "
 			embed = make_embed_error(interaction.user, message)
 			await interaction.response.send_message(embed=embed)
@@ -639,7 +639,7 @@ class Antinuke(commands.Cog):
 			embed = await self.make_embed_antinuke_admins(interaction.user, antinuke_admins)
 			await interaction.response.send_message(embed=embed)
 		except Exception as e:
-			logger.error(f"{type(e)} error in antinuke admins: {e}")
+			log.error(f"{type(e)} error in antinuke admins: {e}")
 			message = f"{type(e)} Error: {e} "
 			embed = make_embed_error(interaction.user, message)
 			await interaction.response.send_message(embed=embed)
@@ -663,7 +663,7 @@ class Antinuke(commands.Cog):
 		try:
 			ret = await get_antinuke_parameters(interaction.guild.id, 'emoji')
 		except Exception as e:
-			logger.error(f"{type(e)} error in antinuke emoji: {e}")
+			log.error(f"{type(e)} error in antinuke emoji: {e}")
 			message = f"{type(e)} Error: {e} "
 			embed = make_embed_error(interaction.user, message)
 			await interaction.response.send_message(embed=embed)
@@ -800,7 +800,7 @@ class Antinuke(commands.Cog):
 			await interaction.response.send_message(embed=embed)
 
 		except Exception as e:
-			logger.error(f"{type(e)} error in antinuke permissions: {e}")
+			log.error(f"{type(e)} error in antinuke permissions: {e}")
 			message = f"{type(e)} Error: {e} "
 			embed = make_embed_error(interaction.user, message)
 			await interaction.response.send_message(embed=embed)
@@ -817,7 +817,7 @@ class Antinuke(commands.Cog):
 			botadd_enabled = await get_botadd_settings(interaction.guild.id)
 			await interaction.followup.send(f"Botadd enabled: **{botadd_enabled}**\nVanity settings: enabled **{vanity_enabled}**, punishment: **{get_punishment(vanity_punishment)}**")
 		except Exception as e:
-			logger.error(f"{type(e)} error in antinuke list: {e}")
+			log.error(f"{type(e)} error in antinuke list: {e}")
 			message = f"{type(e)} Error: {e} "
 			embed = make_embed_error(interaction.user, message)
 			await interaction.followup.send(embed=embed)
@@ -841,7 +841,7 @@ class Antinuke(commands.Cog):
 		try:
 			ret = await get_antinuke_parameters(interaction.guild.id, 'ban')
 		except Exception as e:
-			logger.error(f"{type(e)} error in antinuke ban: {e}")
+			log.error(f"{type(e)} error in antinuke ban: {e}")
 			message = f"{type(e)} Error: {e} "
 			embed = make_embed_error(interaction.user, message)
 			await interaction.response.send_message(embed=embed)
@@ -933,7 +933,7 @@ class Antinuke(commands.Cog):
 		try:
 			ret = await get_antinuke_parameters(interaction.guild.id, 'kick')
 		except Exception as e:
-			logger.error(f"{type(e)} error in antinuke kick: {e}")
+			log.error(f"{type(e)} error in antinuke kick: {e}")
 			message = f"{type(e)} Error: {e} "
 			embed = make_embed_error(interaction.user, message)
 			await interaction.response.send_message(embed=embed)
@@ -1025,7 +1025,7 @@ class Antinuke(commands.Cog):
 		try:
 			ret = await get_antinuke_parameters(interaction.guild.id, 'role')
 		except Exception as e:
-			logger.error(f"{type(e)} error in antinuke role: {e}")
+			log.error(f"{type(e)} error in antinuke role: {e}")
 			message = f"{type(e)} Error: {e} "
 			embed = make_embed_error(interaction.user, message)
 			await interaction.response.send_message(embed=embed)
@@ -1146,7 +1146,7 @@ class Antinuke(commands.Cog):
 			embed.set_author(name=f"{interaction.user}", icon_url=interaction.user.display_avatar.url)
 			await interaction.response.send_message(embed=embed)
 		except Exception as e:
-			logger.error(f"Failed to get antinuke configuration: {e}")
+			log.error(f"Failed to get antinuke configuration: {e}")
 			embed = make_embed_error(interaction.user, f"Failed to get antinuke configuration.")
 			await interaction.response.send_message(embed=embed)
 
@@ -1158,7 +1158,7 @@ class Antinuke(commands.Cog):
 		try:
 			is_whitelisted = await is_whitelisted(interaction.guild.id, user.id)
 		except Exception as e:
-			logger.error(f"Error in whitelist: {e}")
+			log.error(f"Error in whitelist: {e}")
 			embed = make_embed_error(interaction.user, f"Error in whitelist: {e}")
 			await interaction.response.send_message(embed=embed)
 			return
@@ -1219,12 +1219,12 @@ class Antinuke(commands.Cog):
 			try:
 				await member.kick(reason=f"Kicked for {reason}")
 			except Exception as e:
-				logger.error(f"{type(e)} error in punish_moderator kick: {e}")
+				log.error(f"{type(e)} error in punish_moderator kick: {e}")
 		if punishment == "ban":
 			try:
 				await member.ban(reason=f"Banned for {reason}")
 			except Exception as e:
-				logger.error(f"{type(e)} error in punish_moderator ban: {e}")
+				log.error(f"{type(e)} error in punish_moderator ban: {e}")
 		if punishment == "stripstaff":
 			await self.strip_staff(member)
 

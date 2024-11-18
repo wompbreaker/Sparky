@@ -9,7 +9,7 @@ from .db import (
 )
 from .utils import CHECKED, DENY
 
-logger = getLogger(__name__)
+log = getLogger(__name__)
 
 async def helper_lock_channel(guild: discord.Guild, member: discord.Member) -> bool:
 	voice_channels = guild.voice_channels
@@ -20,7 +20,7 @@ async def helper_lock_channel(guild: discord.Guild, member: discord.Member) -> b
 			await voice_channel.set_permissions(guild.default_role, overwrite=overwrites)
 			return True
 		except Exception as e:
-			logger.error(f"Failed to lock channel: {e}")
+			log.error(f"Failed to lock channel: {e}")
 			return False
 		
 async def helper_unlock_channel(guild: discord.Guild, member: discord.Member) -> bool:
@@ -32,7 +32,7 @@ async def helper_unlock_channel(guild: discord.Guild, member: discord.Member) ->
 			await voice_channel.set_permissions(guild.default_role, overwrite=overwrites)
 			return True
 		except Exception as e:
-			logger.error(f"Failed to unlock channel: {e}")
+			log.error(f"Failed to unlock channel: {e}")
 			return False
 		
 async def helper_ghost_channel(guild: discord.Guild, member: discord.Member) -> bool:
@@ -44,7 +44,7 @@ async def helper_ghost_channel(guild: discord.Guild, member: discord.Member) -> 
 			await voice_channel.set_permissions(guild.default_role, overwrite=overwrites)
 			return True
 		except Exception as e:
-			logger.error(f"Failed to ghost channel: {e}")
+			log.error(f"Failed to ghost channel: {e}")
 			return False
 		
 async def helper_reveal_channel(guild: discord.Guild, member: discord.Member) -> bool:
@@ -56,7 +56,7 @@ async def helper_reveal_channel(guild: discord.Guild, member: discord.Member) ->
 			await voice_channel.set_permissions(guild.default_role, overwrite=overwrites)
 			return True
 		except Exception as e:
-			logger.error(f"Failed to unghost channel: {e}")
+			log.error(f"Failed to unghost channel: {e}")
 			return False
 
 		
@@ -67,7 +67,7 @@ async def helper_claim_channel(guild: discord.Guild, member: discord.Member) -> 
 		try:
 			custom_channels = await get_custom_voice_channels(guild)
 		except Exception as e:
-			logger.error(f"Failed to get custom voice channels: {e}")
+			log.error(f"Failed to get custom voice channels: {e}")
 			return False
 		for custom_channel in custom_channels:
 			if custom_channel['channel_id'] == voice_channel.id:
@@ -89,7 +89,7 @@ async def helper_disconnect_member(guild: discord.Guild, member: discord.Member)
 			voice_members = voice_channel.members
 			return voice_members
 		except Exception as e:
-			logger.error(f"Failed to disconnect member: {e}")
+			log.error(f"Failed to disconnect member: {e}")
 			return False
 	raise NotVoiceMember("You're not connected to a **voice channel**")
 		
@@ -101,7 +101,7 @@ async def helper_start_activity(guild: discord.Guild, member: discord.Member) ->
 			await voice_channel.send("Starting a game...")
 			return True
 		except Exception as e:
-			logger.error(f"Failed to start activity: {e}")
+			log.error(f"Failed to start activity: {e}")
 			return False
 	raise NotVoiceMember("You're not connected to a **voice channel**")
 		
@@ -135,7 +135,7 @@ async def helper_view_channel(guild: discord.Guild, member: discord.Member) -> O
 			return embed
 
 		except Exception as e:
-			logger.error(f"{type(e)} Failed to view channel: {e}")
+			log.error(f"{type(e)} Failed to view channel: {e}")
 			return None
 	raise NotVoiceMember("You're not connected to a **voice channel**")
 		
@@ -149,7 +149,7 @@ async def helper_increase_limit(guild: discord.Guild, member: discord.Member) ->
 		except discord.HTTPException as e:
 			return False
 		except Exception as e:
-			logger.error(f"{type(e)} - Failed to increase limit: {e}")
+			log.error(f"{type(e)} - Failed to increase limit: {e}")
 			return None
 	raise NotVoiceMember("You're not connected to a **voice channel**")
 		
@@ -163,6 +163,6 @@ async def helper_decrease_limit(guild: discord.Guild, member: discord.Member) ->
 		except discord.HTTPException as e:
 			return False
 		except Exception as e:
-			logger.error(f"{type(e)} - Failed to decrease limit: {e}")
+			log.error(f"{type(e)} - Failed to decrease limit: {e}")
 			return None
 	raise NotVoiceMember("You're not connected to a **voice channel**")

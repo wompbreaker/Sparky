@@ -5,7 +5,7 @@ from datetime import datetime
 import logging
 from helpers import make_embed_error
 
-logger = logging.getLogger(__name__)
+log = logging.getLogger(__name__)
 
 class EditEmbedModal(Modal, title="Edit Basic Information"):
     embed_title = TextInput(

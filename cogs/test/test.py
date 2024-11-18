@@ -4,7 +4,7 @@ import logging
 from bot import Sparky
 from cogs.fun.fun import Fun
 from helpers import Emojis
-logger = logging.getLogger(__name__)
+log = logging.getLogger(__name__)
 
 class TestView(discord.ui.View):
     def __init__(self, ctx: commands.Context):
@@ -26,9 +26,9 @@ class Test(commands.Cog):
     def __init__(self, bot: Sparky):
         try:
             self.bot: Sparky = bot
-            logger.info(f"{self.qualified_name} initialized successfully!")
+            log.info(f"{self.qualified_name} initialized successfully!")
         except Exception as e:
-            logger.error(f"Failed to initialize {self.qualified_name}: {e}")
+            log.error(f"Failed to initialize {self.qualified_name}: {e}")
 
     @commands.command(
         name="testview",
@@ -118,7 +118,7 @@ class Test(commands.Cog):
                     with open("embed_elements.txt", "rb") as file:
                         await ctx.send(file=discord.File(file, "embed_elements.txt"))
                 except Exception as e:
-                    logger.error(f"Failed to scan embed: {e}")
+                    log.error(f"Failed to scan embed: {e}")
         else:
             await ctx.send("Please reply to a message with embeds.")
 

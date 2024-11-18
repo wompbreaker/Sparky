@@ -26,7 +26,7 @@ from helpers import (
 )
 from .views import *
 
-logger = logging.getLogger(__name__)
+log = logging.getLogger(__name__)
 
 class Moderation(commands.Cog):
 	"""Commands for moderation purposes"""
@@ -35,9 +35,9 @@ class Moderation(commands.Cog):
 		try:
 			self.bot: Sparky = bot
 			self.periodically_empty_non_jailed_users.start()
-			logger.info(f"{self.qualified_name} initialized successfully!")
+			log.info(f"{self.qualified_name} initialized successfully!")
 		except Exception as e:
-			logger.error(f"ERROR: Failed to initialize {self.qualified_name}: {e}")
+			log.error(f"ERROR: Failed to initialize {self.qualified_name}: {e}")
 
 	@property
 	def display_emoji(self) -> discord.PartialEmoji:
@@ -61,9 +61,9 @@ class Moderation(commands.Cog):
 					)
 					await conn.commit()
 		except aiomysql.MySQLError as e:
-			logger.error(f"MySQL error in {self.qualified_name} periodically_empty_non_jailed_users: {e}")
+			log.error(f"MySQL error in {self.qualified_name} periodically_empty_non_jailed_users: {e}")
 		except Exception as e:
-			logger.error(f"Error in {self.qualified_name} periodically_empty_non_jailed_users: {e}")
+			log.error(f"Error in {self.qualified_name} periodically_empty_non_jailed_users: {e}")
 
 	@periodically_empty_non_jailed_users.before_loop
 	async def before_empty_non_jailed_users(self):
@@ -88,7 +88,7 @@ class Moderation(commands.Cog):
 					if result:
 						await message.delete()
 		except Exception as e:
-			logger.error(f"Error in {self.qualified_name} on_message in guild {message.guild}: {e}")
+			log.error(f"Error in {self.qualified_name} on_message in guild {message.guild}: {e}")
 
 	@commands.Cog.listener()
 	async def on_member_update(self, member_before: discord.Member, member_after: discord.Member):
@@ -137,7 +137,7 @@ class Moderation(commands.Cog):
 							await conn.commit()
 
 		except Exception as e:
-			logger.error(f"Error in {self.qualified_name} on_member_update: {e}")
+			log.error(f"Error in {self.qualified_name} on_member_update: {e}")
 
 	@commands.Cog.listener()
 	async def on_member_join(self, member: discord.Member):
@@ -168,7 +168,7 @@ class Moderation(commands.Cog):
 								jailed_role = member.guild.get_role(jailed_role_id)
 								await member.add_roles(jailed_role)
 		except Exception as e:
-			logger.error(f"Error in {self.qualified_name} on_member_join: {e}")
+			log.error(f"Error in {self.qualified_name} on_member_join: {e}")
 
 #######################################################################################################
 #                                       JAIL SYSTEM COMMANDS                                          #
@@ -292,7 +292,7 @@ class Moderation(commands.Cog):
 			await loading_message.edit(embed=embed)
 
 		except Exception as e:
-			logger.error(f"An error has occurred in {self.qualified_name} database setup_jailed_perms: {e}")
+			log.error(f"An error has occurred in {self.qualified_name} database setup_jailed_perms: {e}")
 			message = "An error has occurred while setting up the **jail system**"
 			embed = make_embed_error(ctx.author, message)
 			await loading_message.edit(embed=embed)
@@ -337,7 +337,7 @@ class Moderation(commands.Cog):
 						jailed_role_exists = False
 						jail_channel_exists = False
 		except Exception as e:
-			logger.error(f"Error in {self.qualified_name} jail_member: {e}")
+			log.error(f"Error in {self.qualified_name} jail_member: {e}")
 			await ctx.error(f"An error has occurred in {self.qualified_name} database jailed check: {e}")
 			return
 
@@ -599,7 +599,7 @@ class Moderation(commands.Cog):
 				await ctx.warning("You can't lock a category channel")
 
 		except Exception as e:
-			logger.error(f"Error in Channel lock_channel: {e}")
+			log.error(f"Error in Channel lock_channel: {e}")
 			await ctx.message.add_reaction("👎")
 
 	@lock_channel.command(
@@ -652,7 +652,7 @@ class Moderation(commands.Cog):
 				embed = make_embed_lockdown(ctx.author, True, message)
 				await ctx.send(embed)
 		except Exception as e:
-			logger.error(f"Error in Channel lock_all_channels: {e}")
+			log.error(f"Error in Channel lock_all_channels: {e}")
 			await ctx.message.add_reaction("👎")
 
 	@lock_channel.group(
@@ -759,7 +759,7 @@ class Moderation(commands.Cog):
 				await channel.set_permissions(default_role, overwrite=existing_permissions)
 				await ctx.message.add_reaction("🔓")
 		except Exception as e:
-			logger.error(f"Error in Channel unlock_channel: {e}")
+			log.error(f"Error in Channel unlock_channel: {e}")
 			await ctx.message.add_reaction("👎")
 
 	@unlock_channel.command(
@@ -793,7 +793,7 @@ class Moderation(commands.Cog):
 				embed = make_embed_lockdown(ctx.author, False, message)
 				await ctx.send(embed)
 		except Exception as e:
-			logger.error(f"Error in Channel unlock_all_channels: {e}")
+			log.error(f"Error in Channel unlock_all_channels: {e}")
 			await ctx.error("An error occurred while unlocking all channels")
 		
 
@@ -912,7 +912,7 @@ class Moderation(commands.Cog):
 								)
 								await ctx.success(f"Now **forcing current nickname** for **{member}**")
 						else:
-							# if a member doesn't have a nickname, logger.error a warning message
+							# if a member doesn't have a nickname, log.error a warning message
 							await ctx.warning(f"**{member}** has no nickname set to lock!")
 		except Exception as e:
 			await ctx.error(f"An error occurred while trying to force a nickname: {e}")
@@ -1823,7 +1823,7 @@ class Moderation(commands.Cog):
 			if not isinstance(channel, discord.CategoryChannel):
 				await channel.set_permissions(role, overwrite=overwrite)
 		except Exception as e:
-			logger.error(f"An error has occurred in setting {role} creation: {e}")
+			log.error(f"An error has occurred in setting {role} creation: {e}")
 
 
 	@commands.command(
@@ -2235,7 +2235,7 @@ class Moderation(commands.Cog):
 						)
 						await conn.commit()
 		except Exception as e:
-			logger.error(f"An error has occurred in checking lockdown system: {e}")
+			log.error(f"An error has occurred in checking lockdown system: {e}")
 				
 	async def get_ignored_channels(self, guild: discord.Guild) -> typing.List[int]:
 		"""Get ignored channels for a guild"""
@@ -2254,7 +2254,7 @@ class Moderation(commands.Cog):
 						ignored_channels = json.loads(ignored_channels_json)  # list
 					return ignored_channels
 		except Exception as e:
-			logger.error(f"An error has occurred in getting ignored channels: {e}")
+			log.error(f"An error has occurred in getting ignored channels: {e}")
 			return []
 			
 	async def add_ignored_channel(self, guild: discord.Guild, channel_id: int):
@@ -2273,7 +2273,7 @@ class Moderation(commands.Cog):
 					)
 					await conn.commit()
 		except Exception as e:
-			logger.error(f"An error has occurred in adding ignored channel: {e}")
+			log.error(f"An error has occurred in adding ignored channel: {e}")
 
 	async def remove_ignored_channel(self, guild: discord.Guild, channel_id: int):
 		"""Remove an ignored channel from a guild"""
@@ -2291,7 +2291,7 @@ class Moderation(commands.Cog):
 					)
 					await conn.commit()
 		except Exception as e:
-			logger.error(f"An error has occurred in removing ignored channel: {e}")
+			log.error(f"An error has occurred in removing ignored channel: {e}")
 
 	async def get_lock_role_id(self, guild: discord.Guild) -> typing.Optional[int]:
 		"""Get a lock role for a guild"""
@@ -2310,7 +2310,7 @@ class Moderation(commands.Cog):
 						lock_role_id = cur_result['lock_role_id']
 					return lock_role_id
 		except Exception as e:
-			logger.error(f"An error has occurred in getting lock role: {e}")
+			log.error(f"An error has occurred in getting lock role: {e}")
 			return None
 			
 	async def set_lock_role_id(self, guild: discord.Guild, role_id: int):
@@ -2327,7 +2327,7 @@ class Moderation(commands.Cog):
 					)
 					await conn.commit()
 		except Exception as e:
-			logger.error(f"An error has occurred in setting lock role: {e}")
+			log.error(f"An error has occurred in setting lock role: {e}")
 
 	async def check_ban_system(self, guild: discord.Guild):
 		"""Check if a guild has a ban system, if not, create one"""
@@ -2346,7 +2346,7 @@ class Moderation(commands.Cog):
 						)
 						await conn.commit()
 		except Exception as e:
-			logger.error(f"An error has occurred in checking ban system: {e}")
+			log.error(f"An error has occurred in checking ban system: {e}")
 
 	async def get_ban_history(self, guild: discord.Guild) -> typing.Optional[str]:
 		"""Get a ban history for a guild"""
@@ -2365,7 +2365,7 @@ class Moderation(commands.Cog):
 						ban_history = cur_result['default_history']
 					return ban_history
 		except Exception as e:
-			logger.error(f"An error has occurred in getting ban history: {e}")
+			log.error(f"An error has occurred in getting ban history: {e}")
 			return None
 
 	async def set_ban_history(self, guild: discord.Guild, ban_history: str):
@@ -2382,4 +2382,4 @@ class Moderation(commands.Cog):
 					)
 					await conn.commit()
 		except Exception as e:
-			logger.error(f"An error has occurred in setting ban history: {e}")
+			log.error(f"An error has occurred in setting ban history: {e}")

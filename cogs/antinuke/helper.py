@@ -13,7 +13,7 @@ from discord import (
 )
 from .db import is_whitelisted
 
-logger = logging.getLogger(__name__)
+log = logging.getLogger(__name__)
 
 def get_punishment(value: int) -> Optional[Literal['stripstaff', 'kick', 'ban']]:
 	"""Get the punishment name from the value
@@ -38,7 +38,7 @@ def get_punishment(value: int) -> Optional[Literal['stripstaff', 'kick', 'ban']]
 		}
 		return punishments[value]
 	except Exception as e:
-		logger.error(f"{type(e)} error in get_punishment: {e}")
+		log.error(f"{type(e)} error in get_punishment: {e}")
 
 
 def get_user_id_from_reason(reason: str) -> int:
@@ -108,12 +108,12 @@ async def punish_moderator(member: Member, punishment: int, reason: str):
 		try:
 			await member.kick(reason=f"Kicked for {reason}")
 		except Exception as e:
-			logger.error(f"{type(e)} error in punish_moderator kick: {e}")
+			log.error(f"{type(e)} error in punish_moderator kick: {e}")
 	if punishment == "ban":
 		try:
 			await member.ban(reason=f"Banned for {reason}")
 		except Exception as e:
-			logger.error(f"{type(e)} error in punish_moderator ban: {e}")
+			log.error(f"{type(e)} error in punish_moderator ban: {e}")
 	if punishment == "stripstaff":
 		await strip_staff(member)
 

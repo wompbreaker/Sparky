@@ -1,7 +1,7 @@
 from aiomysql import DictCursor, Pool
 import logging
 
-logger = logging.getLogger(__name__)
+log = logging.getLogger(__name__)
 
 async def check_prefix_exists(pool: Pool, guild_id: int) -> bool:
 	try:
@@ -16,5 +16,5 @@ async def check_prefix_exists(pool: Pool, guild_id: int) -> bool:
 					return result['is_set_prefix'], result['guild_prefix']
 				return False, None
 	except Exception as e:
-		logger.error(f"An error occurred in Server display_prefix: {e}")
+		log.error(f"An error occurred in Server display_prefix: {e}")
 		return False, None

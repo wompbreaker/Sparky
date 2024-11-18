@@ -13,7 +13,7 @@ import os
 
 load_dotenv()
 
-logger = getLogger(__name__)
+log = getLogger(__name__)
 
 __all__ = (
 	'Context',
@@ -62,5 +62,5 @@ async def get_pool() -> Optional[Pool]:
         )
         return pool
     except Exception as e:
-        logger.exception(f"An error has occurred in get_pool: {e}")
+        log.exception(f"An error has occurred in get_pool: {e}")
         return None

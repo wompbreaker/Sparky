@@ -10,7 +10,7 @@ from discord import (
 )
 from helpers import get_pool
 
-logger = getLogger(__name__)
+log = getLogger(__name__)
 
 async def get_log_property(guild_id: int, property: str) -> Optional[Union[Dict, List]]:
 	"""Get log property for a specific guild"""
@@ -28,7 +28,7 @@ async def get_log_property(guild_id: int, property: str) -> Optional[Union[Dict,
 				else:
 					return None
 	except Exception as e:
-		logger.error(f"ERROR: Failed to get log property: {e}")
+		log.error(f"ERROR: Failed to get log property: {e}")
 		return None
 	
 async def get_event_channels(guild_id: int, event: str) -> Union[List[int], Dict[str, List[int]]]:
@@ -45,7 +45,7 @@ async def get_event_channels(guild_id: int, event: str) -> Union[List[int], Dict
 				channel_list = channels[event]
 		return channel_list
 	except Exception as e:
-		logger.error(f"ERROR: Failed to get event channels: {e}")
+		log.error(f"ERROR: Failed to get event channels: {e}")
 		return []
 	
 async def check_duplicate_channel(guild_id: int, channel_id: int, event: str) -> bool:
@@ -66,7 +66,7 @@ async def get_ignored_channels(guild: Guild) -> Optional[List[TextChannel]]:
 			channel_list = [utils.get(guild.channels, id=channel_id) for channel_id in ignored_channels]
 		return channel_list
 	except Exception as e:
-		logger.error(f"ERROR: Failed to get ignored channels: {e}")
+		log.error(f"ERROR: Failed to get ignored channels: {e}")
 		return []
 	
 async def get_ignored_members(guild: Guild) -> Optional[List[Member]]:
@@ -79,7 +79,7 @@ async def get_ignored_members(guild: Guild) -> Optional[List[Member]]:
 			member_list = [guild.get_member(member_id) for member_id in ignored_members]
 		return member_list				
 	except Exception as e:
-		logger.error(f"ERROR: Failed to get ignored members: {e}")
+		log.error(f"ERROR: Failed to get ignored members: {e}")
 		return []
 
 #######################################################################################################
@@ -97,7 +97,7 @@ async def setup_logging(guild_id: int) -> bool:
 				)
 				return True
 	except Exception as e:
-		logger.error(f"ERROR: Failed to setup logging: {e}")
+		log.error(f"ERROR: Failed to setup logging: {e}")
 		return False
 
 async def reset_logging(guild_id: int) -> bool:
@@ -111,7 +111,7 @@ async def reset_logging(guild_id: int) -> bool:
 				)
 				return True
 	except Exception as e:
-		logger.error(f"ERROR: Failed to reset logging: {e}")
+		log.error(f"ERROR: Failed to reset logging: {e}")
 		return False
 
 async def set_log_property(guild_id: int, property: str, value: Any) -> bool:
@@ -136,7 +136,7 @@ async def set_log_property(guild_id: int, property: str, value: Any) -> bool:
 					)
 					return True
 	except Exception as e:
-		logger.error(f"ERROR: Failed to set log property: {e}")
+		log.error(f"ERROR: Failed to set log property: {e}")
 		return False
 	
 async def set_event_channel(guild_id: int, channel_id: int, event: str) -> bool:
@@ -152,7 +152,7 @@ async def set_event_channel(guild_id: int, channel_id: int, event: str) -> bool:
 		else:
 			return False
 	except Exception as e:
-		logger.error(f"ERROR: Failed to set event channel: {e}")
+		log.error(f"ERROR: Failed to set event channel: {e}")
 		return False
 	
 async def add_channel_for_all_events(guild_id: int, channel_id: int) -> bool:
@@ -165,6 +165,6 @@ async def add_channel_for_all_events(guild_id: int, channel_id: int) -> bool:
 		await set_log_property(guild_id, 'channels', json.dumps(channels))
 		return True
 	except Exception as e:
-		logger.error(f"ERROR: Failed to add channel for all events: {e}")
+		log.error(f"ERROR: Failed to add channel for all events: {e}")
 		return False
 	

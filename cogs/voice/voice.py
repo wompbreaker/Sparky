@@ -20,7 +20,7 @@ from helpers import (
 
 SUPPORT_SERVER = "https://discord.gg/8MTyyEUsJb"
 
-logger = logging.getLogger(__name__)
+log = logging.getLogger(__name__)
 	
 class Voicemaster(commands.Cog):
 	"""Voice controls for your server"""
@@ -28,9 +28,9 @@ class Voicemaster(commands.Cog):
 	def __init__(self, bot):
 		try:
 			self.bot: Sparky = bot
-			logger.info(f"{self.qualified_name} initialized successfully!")
+			log.info(f"{self.qualified_name} initialized successfully!")
 		except Exception as e:
-			logger.error(f"Failed to initialize {self.qualified_name}: {e}")
+			log.error(f"Failed to initialize {self.qualified_name}: {e}")
 
 	@property
 	def display_emoji(self) -> discord.PartialEmoji:
@@ -46,7 +46,7 @@ class Voicemaster(commands.Cog):
 		try:
 			voicemaster_channel_id = await get_voicemaster_setting(member.guild, "voice_channel_id")
 		except Exception as e:
-			logger.error(f"Failed to get voice channel id: {e}")
+			log.error(f"Failed to get voice channel id: {e}")
 			return
 		# create a new channel if the user joins the Join to Create channel
 		if after.channel and after.channel.id == voicemaster_channel_id:
@@ -55,7 +55,7 @@ class Voicemaster(commands.Cog):
 				try:
 					voice_settings = await get_voicemaster_settings(member.guild)
 				except Exception as e:
-					logger.error(f"Failed to get voice settings: {e}")
+					log.error(f"Failed to get voice settings: {e}")
 					return
 				category_channel_ids = await get_category_channel_ids(member.guild)
 				if category_channel_ids is not None:
@@ -88,13 +88,13 @@ class Voicemaster(commands.Cog):
 				# create a database entry for the new channel
 				await insert_custom_voice_channel(new_channel, member)
 			except Exception as e:
-				logger.error(f"Failed to create voice channel: {e}")
+				log.error(f"Failed to create voice channel: {e}")
 
 		# delete custom voice channels if they are empty
 		try:
 			custom_channels = await get_custom_voice_channels(member.guild)
 		except Exception as e:
-			logger.error(f"Failed to get custom voice channels: {e}")
+			log.error(f"Failed to get custom voice channels: {e}")
 			return
 		# check if the current channel is a custom channel
 		if before.channel and before.channel.id in [custom_channel['channel_id'] for custom_channel in custom_channels]:
@@ -104,7 +104,7 @@ class Voicemaster(commands.Cog):
 					await before.channel.delete(reason="VoiceMaster channel deletion")
 					await delete_custom_voice_channel(before.channel)
 				except Exception as e:
-					logger.error(f"Failed to delete voice channel: {e}")
+					log.error(f"Failed to delete voice channel: {e}")
 
 		# check if a user joins a custom voice channel that has automatic roles enabled or if the server has an auto role set
 		if after.channel and after.channel.id in [custom_channel['channel_id'] for custom_channel in custom_channels]:
@@ -117,7 +117,7 @@ class Voicemaster(commands.Cog):
 					try:
 						await member.add_roles(role, reason="VoiceMaster role assignment")
 					except Exception as e:
-						logger.error(f"Failed to assign role: {e}")
+						log.error(f"Failed to assign role: {e}")
 
 	#######################################################################################################
 	#                                           COMMANDS                                                  #
@@ -153,7 +153,7 @@ class Voicemaster(commands.Cog):
 				await ctx.message.add_reaction("✅")
 				return
 			except Exception as e:
-				logger.error(f"Failed to set status: {e}")
+				log.error(f"Failed to set status: {e}")
 				await ctx.message.add_reaction("❌")
 				return
 		raise NotVoiceMember("You're not connected to a **voice channel**")
@@ -210,7 +210,7 @@ class Voicemaster(commands.Cog):
 					await voice_channel.edit(user_limit=limit)
 					await ctx.success(f"Your **voice channel**'s limit has been updated to `{limit}`")
 				except Exception as e:
-					logger.error(f"Failed to set limit: {e}")
+					log.error(f"Failed to set limit: {e}")
 					await ctx.error("Failed to set limit for the **voice channel**")
 
 	@voicemaster.command(
@@ -231,7 +231,7 @@ class Voicemaster(commands.Cog):
 			else:
 				await ctx.warning("Failed to **hide** the **voice channel**")
 		except Exception as e:
-			logger.error(f"Failed to ghost channel: {e}")
+			log.error(f"Failed to ghost channel: {e}")
 			await ctx.error("Failed to **hide** the **voice channel**")
 
 	@voicemaster.command(
@@ -247,7 +247,7 @@ class Voicemaster(commands.Cog):
 			try:
 				custom_channels = await get_custom_voice_channels(ctx.guild)
 			except Exception as e:
-				logger.error(f"Failed to get custom channels: {e}")
+				log.error(f"Failed to get custom channels: {e}")
 				await ctx.warning("Failed to **claim** the **voice channel**")
 				return
 			for custom_channel in custom_channels:
@@ -263,7 +263,7 @@ class Voicemaster(commands.Cog):
 						await transfer_custom_voice_channel(voice_channel, ctx.author)
 						await ctx.success("You have **claimed** this **voice channel**")
 					except Exception as e:
-						logger.error(f"Failed to claim channel: {e}")
+						log.error(f"Failed to claim channel: {e}")
 						await ctx.warning("Failed to **claim** the **voice channel**")
 					return
 		raise NotVoiceMember("You're not connected to a **voice channel**")
@@ -294,7 +294,7 @@ class Voicemaster(commands.Cog):
 				await transfer_custom_voice_channel(owner_channel, user)
 				await ctx.success(f"**Ownership** of the voice channel has been transferred to {user.mention}")
 			except Exception as e:
-				logger.error(f"Failed to transfer ownership: {e}")
+				log.error(f"Failed to transfer ownership: {e}")
 				await ctx.warning("Failed to transfer **ownership**")
 		else:
 			await ctx.warning("You can only **transfer ownership** to users in your **voice channel**")
@@ -356,7 +356,7 @@ class Voicemaster(commands.Cog):
 		try:
 			db_name = await get_voicemaster_setting(ctx.guild, "default_name")
 		except Exception as e:
-			logger.error(f"Failed to get default name: {e}")
+			log.error(f"Failed to get default name: {e}")
 			await ctx.error("Failed to get **default name**")
 			return
 		default_name = "{user.name}'s channel"
@@ -388,7 +388,7 @@ class Voicemaster(commands.Cog):
 		try:
 			db_region = await get_voicemaster_setting(ctx.guild, "default_region")
 		except Exception as e:
-			logger.error(f"Failed to get default region: {e}")
+			log.error(f"Failed to get default region: {e}")
 			await ctx.error("Failed to get **default region**")
 			return
 	
@@ -438,7 +438,7 @@ class Voicemaster(commands.Cog):
 		try:
 			is_setup = await get_voicemaster_setting(ctx.guild, "is_setup")
 		except Exception as e:
-			logger.error(f"Failed to get voicemaster settings: {e}")
+			log.error(f"Failed to get voicemaster settings: {e}")
 			await ctx.warning(f"Failed to initialize **VoiceMaster**. Please contact support in the [__support server__]({SUPPORT_SERVER})")
 			return
 		if is_setup:
@@ -480,7 +480,7 @@ class Voicemaster(commands.Cog):
 				reason="VoiceMaster setup", 
 				overwrites=text_overwrites
 			)
-			logger.info(f"Created interface channel: {interface_channel}")
+			log.info(f"Created interface channel: {interface_channel}")
 			await self.create_interface(interface_channel)
 			# Create voice channel
 			voice_overwrites = {
@@ -494,26 +494,26 @@ class Voicemaster(commands.Cog):
 				reason="VoiceMaster setup", 
 				overwrites=voice_overwrites
 			)
-			logger.info(f"Created voice channel: {voice_channel}")
+			log.info(f"Created voice channel: {voice_channel}")
 			# put category channel, interface channel and voice channel ID's in database
 			if in_database:
 				await set_voicemaster_setting(ctx.guild, "is_setup", True)
 			else:
 				val = await initialize_voicemaster(ctx.guild)
 				if val is False:
-					logger.error("Failed to initialize VoiceMaster")
+					log.error("Failed to initialize VoiceMaster")
 					message = f"Failed to initialize **VoiceMaster**. Please contact support in the [__support server__]({SUPPORT_SERVER})"
 					warning_embed = make_embed_warning(ctx.author, message)
 					await progress_message.edit(embed=warning_embed)
 					return
 			val_category = await init_category_channel_ids(ctx.guild, category_channel.id)
-			logger.info(f"val_category: {val_category}")
+			log.info(f"val_category: {val_category}")
 			val_interface = await set_voicemaster_setting(ctx.guild, "interface_channel_id", interface_channel.id)
-			logger.info(f"val_interface: {val_interface}")
+			log.info(f"val_interface: {val_interface}")
 			val_voice = await set_voicemaster_setting(ctx.guild, "voice_channel_id", voice_channel.id)
-			logger.info(f"val_voice: {val_voice}")
+			log.info(f"val_voice: {val_voice}")
 			if not val_category or not val_interface or not val_voice:
-				logger.error("Failed to initialize VoiceMaster")
+				log.error("Failed to initialize VoiceMaster")
 				message = f"Failed to initialize **VoiceMaster**. Please contact support in the [__support server__]({SUPPORT_SERVER})"
 				warning_embed = make_embed_warning(ctx.author, message)
 				await progress_message.edit(embed=warning_embed)
@@ -552,55 +552,55 @@ class Voicemaster(commands.Cog):
 	# @commands.cooldown(1, 20, commands.BucketType.guild)
 	async def voicemaster_reset(self, ctx: Context):
 		"""Reset server configuration for VoiceMaster"""
-		logger.info(f"Resetting VoiceMaster for {ctx.guild}")
+		log.info(f"Resetting VoiceMaster for {ctx.guild}")
 		
 		category_channel_ids = await get_category_channel_ids(ctx.guild)
 		if category_channel_ids is not None:
-			logger.info(f"category_channel_ids: {category_channel_ids}")
+			log.info(f"category_channel_ids: {category_channel_ids}")
 			default_category_id = category_channel_ids[1]
 			category_channel = ctx.guild.get_channel(default_category_id)
 			try:
 				await category_channel.delete(reason="VoiceMaster reset")
-				logger.info("Deleted VoiceMaster category channel")
+				log.info("Deleted VoiceMaster category channel")
 			except Exception as e:
-				logger.error(f"Failed to delete category channel: {e}")
+				log.error(f"Failed to delete category channel: {e}")
 		else:
-			logger.error("Failed to get category channel ID")
+			log.error("Failed to get category channel ID")
 		try:
 			interface_channel_id = await get_voicemaster_setting(ctx.guild, "interface_channel_id")
 		except Exception as e:
-			logger.error(f"Failed to get interface channel ID: {e}")
+			log.error(f"Failed to get interface channel ID: {e}")
 			return
 		if interface_channel_id is not None:
 			interface_channel = ctx.guild.get_channel(interface_channel_id)
 			try:
 				await interface_channel.delete(reason="VoiceMaster reset")
-				logger.info("Deleted VoiceMaster interface channel")
+				log.info("Deleted VoiceMaster interface channel")
 			except Exception as e:
-				logger.error(f"Failed to delete interface channel: {e}")
+				log.error(f"Failed to delete interface channel: {e}")
 		else:
-			logger.error("Failed to get interface channel ID")
+			log.error("Failed to get interface channel ID")
 		try:
 			voice_channel_id = await get_voicemaster_setting(ctx.guild, "voice_channel_id")
 		except Exception as e:
-			logger.error(f"Failed to get voice channel ID: {e}")
+			log.error(f"Failed to get voice channel ID: {e}")
 			return
 		if voice_channel_id is not None:
 			voice_channel = ctx.guild.get_channel(voice_channel_id)
 			try:
 				await voice_channel.delete(reason="VoiceMaster reset")
-				logger.info("Deleted VoiceMaster voice channel")
+				log.info("Deleted VoiceMaster voice channel")
 			except Exception as e:
-				logger.error(f"Failed to delete voice channel: {e}")
+				log.error(f"Failed to delete voice channel: {e}")
 		else:
-			logger.error("Failed to get voice channel ID")
-		logger.info("Deleted VoiceMaster channels")
+			log.error("Failed to get voice channel ID")
+		log.info("Deleted VoiceMaster channels")
 		reset = await reset_voicemaster_settings(ctx.guild)
 		if reset:
-			logger.info("Reset VoiceMaster settings")
+			log.info("Reset VoiceMaster settings")
 			await ctx.success("Reset the **VoiceMaster** configuration.")
 		else:
-			logger.info("Failed to reset VoiceMaster settings")
+			log.info("Failed to reset VoiceMaster settings")
 			await ctx.warning(f"**VoiceMaster** server configuration was not found. Run `{ctx.prefix}voicemaster setup` to configure **VoiceMaster**.")
 
 	@voicemaster.command(
@@ -658,7 +658,7 @@ class Voicemaster(commands.Cog):
 			try:
 				default_role_id = await get_voicemaster_setting(ctx.guild, "default_role_id")
 			except Exception as e:
-				logger.error(f"Failed to get default role: {e}")
+				log.error(f"Failed to get default role: {e}")
 				await ctx.warning("Failed to get **default role**")
 				return
 			if default_role_id is None:
@@ -682,9 +682,9 @@ class Voicemaster(commands.Cog):
 		# assign role to all members in the channel and all the future members
 		val = await set_custom_voice_channel_role(voice_channel, role.id)
 		if val:
-			logger.info(f"Set role for voice channel: {role}")
+			log.info(f"Set role for voice channel: {role}")
 		else:
-			logger.error("Failed to set role for voice channel")
+			log.error("Failed to set role for voice channel")
 
 		success = 0
 		failed = 0
@@ -693,7 +693,7 @@ class Voicemaster(commands.Cog):
 				await member.add_roles(role, reason="VoiceMaster role assignment")
 				success += 1
 			except Exception as e:
-				logger.error(f"Failed to assign role: {e}")
+				log.error(f"Failed to assign role: {e}")
 				failed += 1
 		message = f"Succesfully assigned {role.mention} to `{success}` members"
 		if failed > 0:
@@ -719,7 +719,7 @@ class Voicemaster(commands.Cog):
 				await voice_channel.edit(bitrate=bitrate*1000)
 				await ctx.success(f"Set **bitrate** for **voice channel** to `{bitrate}` kbps")
 			except Exception as e:
-				logger.error(f"Failed to set bitrate: {e}")
+				log.error(f"Failed to set bitrate: {e}")
 				await ctx.warning("Failed to set bitrate")
 
 	@voicemaster.command(
@@ -750,7 +750,7 @@ class Voicemaster(commands.Cog):
 		try:
 			await voice_channel.edit(overwrites=music_overwrites)
 		except Exception as e:
-			logger.error(f"Failed to set music only channel: {e}")
+			log.error(f"Failed to set music only channel: {e}")
 			await ctx.error("Failed to set music only channel")
 		else:
 			await ctx.success(message)
@@ -768,7 +768,7 @@ class Voicemaster(commands.Cog):
 		try:
 			db_name = await get_voicemaster_setting(ctx.guild, "default_name")
 		except Exception as e:
-			logger.error(f"Failed to get default name: {e}")
+			log.error(f"Failed to get default name: {e}")
 			return
 		# if name is None and db_name is None, display help
 		# if name is None and db_name is not None, set name to db_name
@@ -788,7 +788,7 @@ class Voicemaster(commands.Cog):
 				await voice_channel.edit(name=name)
 				await ctx.success(message)
 			except Exception as e:
-				logger.error(f"Failed to set name: {e}")
+				log.error(f"Failed to set name: {e}")
 				await ctx.warning("Failed to set name")
 
 	@voicemaster.command(
@@ -806,7 +806,7 @@ class Voicemaster(commands.Cog):
 				await voice_channel.set_permissions(user, overwrite=overwrites)
 				await ctx.success(f"Permitted {user.mention} to **join** the **voice channel**")
 			except Exception as e:
-				logger.error(f"Failed to permit user: {e}")
+				log.error(f"Failed to permit user: {e}")
 				await ctx.warning("Failed to permit user")
 		else:
 			raise NotVoiceMember("You're not connected to a **voice channel**")
@@ -830,14 +830,14 @@ class Voicemaster(commands.Cog):
 					# disconnect user from voice channel
 					await user.move_to(None)
 				except Exception as e:
-					logger.error(f"Failed to disconnect user: {e}")
+					log.error(f"Failed to disconnect user: {e}")
 					await ctx.warning(f"Failed to disconnect user {user.mention}")
 					return
 			try:
 				await voice_channel.set_permissions(user, overwrite=overwrites)
 				await ctx.success(f"Rejected {user.mention} from **joining** the **voice channel**")
 			except Exception as e:
-				logger.error(f"Failed to reject user: {e}")
+				log.error(f"Failed to reject user: {e}")
 				await ctx.error("Failed to reject user")
 		else:
 			raise NotVoiceMember("You're not connected to a **voice channel**")
@@ -880,5 +880,5 @@ class Voicemaster(commands.Cog):
 			interface_view = InterfaceView(self.bot)
 			await interface_channel.send(embed=embed, view=interface_view)
 		except Exception as e:
-			logger.error(f"Failed to create interface: {e}")
+			log.error(f"Failed to create interface: {e}")
 			await interface_channel.send("Failed to create interface")

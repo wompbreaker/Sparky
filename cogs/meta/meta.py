@@ -22,7 +22,7 @@ if TYPE_CHECKING:
 import logging
 
 # Configure logging
-logger = logging.getLogger(__name__)
+log = logging.getLogger(__name__)
 
 WARNING = Emojis().get_emoji('warning')
 COOLDOWN = Emojis().get_emoji('cooldown')
@@ -38,9 +38,9 @@ class Meta(commands.Cog):
             self.old_help_command: Optional[commands.HelpCommand] = bot.help_command
             bot.help_command = PaginatedHelpCommand()
             bot.help_command.cog = self
-            logger.info(f"{self.qualified_name} initialized successfully!")
+            log.info(f"{self.qualified_name} initialized successfully!")
         except Exception as e:
-            logger.error(f"Failed to initialize Meta: {e}")
+            log.error(f"Failed to initialize Meta: {e}")
 
     @property
     def display_emoji(self) -> discord.PartialEmoji:
@@ -82,4 +82,4 @@ class Meta(commands.Cog):
             out = await ctx.send(embed, view=view)
             view.response = out
         except Exception as e:
-            logger.error(f"Failed to send invite: {e}")
+            log.error(f"Failed to send invite: {e}")

@@ -15,7 +15,7 @@ from typing import (
 from helpers import get_pool
 from logging import getLogger
 
-logger = getLogger(__name__)
+log = getLogger(__name__)
 
 __all__ = (
 	'get_voicemaster_settings',
@@ -73,7 +73,7 @@ async def get_voicemaster_settings(
 					)
 				return None
 	except Exception as e:
-		logger.error(f"Failed to get Voicemaster settings: {e}")
+		log.error(f"Failed to get Voicemaster settings: {e}")
 		raise e
 	
 async def get_voicemaster_setting(guild: Guild, setting: str):
@@ -89,7 +89,7 @@ async def get_voicemaster_setting(guild: Guild, setting: str):
 				result = await cur.fetchone()
 				return result[setting] if result else None
 	except Exception as e:
-		logger.error(f"Failed to get Voicemaster setting: {e}")
+		log.error(f"Failed to get Voicemaster setting: {e}")
 		raise e
 	
 async def get_category_channel_ids(guild: Guild) -> Optional[Tuple[int]]:
@@ -98,26 +98,26 @@ async def get_category_channel_ids(guild: Guild) -> Optional[Tuple[int]]:
 		try:
 			category_channel_ids = await get_voicemaster_setting(guild, "category_channel_ids")
 		except Exception as e:
-			logger.error(f"Failed to get category channel id: {e}")
+			log.error(f"Failed to get category channel id: {e}")
 			raise e
 		if category_channel_ids is not None:
 			category_channel_ids = json.loads(category_channel_ids)
 			return category_channel_ids['custom_id'], category_channel_ids['default_id']
 		return None
 	except Exception as e:
-		logger.error(f"Failed to get category channel id: {e}")
+		log.error(f"Failed to get category channel id: {e}")
 		raise e
 
 async def get_custom_voice_channels(guild: Guild) -> List[Dict]:
 	"""Get custom voice channels from the database"""
 	try:
 		custom_channels_json = await get_voicemaster_setting(guild, "custom_channels")
-		logger.info(f"custom_channels_json: {custom_channels_json}")
+		log.info(f"custom_channels_json: {custom_channels_json}")
 		custom_channels: List[Dict] = json.loads(custom_channels_json)
-		logger.info(f"custom_channels: {custom_channels}")
+		log.info(f"custom_channels: {custom_channels}")
 		return custom_channels
 	except Exception as e:
-		logger.error(f"Failed to get custom voice channels: {e}")
+		log.error(f"Failed to get custom voice channels: {e}")
 		raise e
 
 async def get_users_voice_channel(user: Member) -> Optional[VoiceChannel]:
@@ -127,14 +127,14 @@ async def get_users_voice_channel(user: Member) -> Optional[VoiceChannel]:
 		try:
 			custom_channels = await get_custom_voice_channels(user.guild)
 		except Exception as e:
-			logger.error(f"Failed to get custom voice channels: {e}")
+			log.error(f"Failed to get custom voice channels: {e}")
 			raise e
 		for voice_channel in voice_channels:
 			if user in voice_channel.members and voice_channel.id in [custom_channel['channel_id'] for custom_channel in custom_channels]:
 				return voice_channel
 		return None
 	except Exception as e:
-		logger.error(f"Failed to get user's voice channel: {e}")
+		log.error(f"Failed to get user's voice channel: {e}")
 		raise e
 	
 async def get_custom_voice_channel(channel: VoiceChannel) -> Optional[Dict]:
@@ -143,14 +143,14 @@ async def get_custom_voice_channel(channel: VoiceChannel) -> Optional[Dict]:
 		try:
 			custom_channels = await get_custom_voice_channels(channel.guild)
 		except Exception as e:
-			logger.error(f"Failed to get custom voice channels: {e}")
+			log.error(f"Failed to get custom voice channels: {e}")
 			raise e
 		for custom_channel in custom_channels:
 			if custom_channel['channel_id'] == channel.id:
 				return custom_channel
 		return None
 	except Exception as e:
-		logger.error(f"Failed to get custom voice channel: {e}")
+		log.error(f"Failed to get custom voice channel: {e}")
 		raise e
 	
 async def get_custom_voice_channel_role(channel: VoiceChannel) -> Optional[Role]:
@@ -159,7 +159,7 @@ async def get_custom_voice_channel_role(channel: VoiceChannel) -> Optional[Role]
 		try:
 			custom_channel = await get_custom_voice_channel(channel)
 		except Exception as e:
-			logger.error(f"Failed to get custom voice channel: {e}")
+			log.error(f"Failed to get custom voice channel: {e}")
 			raise e
 		if custom_channel is not None:
 			role_id = custom_channel['role_id']
@@ -167,7 +167,7 @@ async def get_custom_voice_channel_role(channel: VoiceChannel) -> Optional[Role]
 			return role
 		return None
 	except Exception as e:
-		logger.error(f"Failed to get custom voice channel role: {e}")
+		log.error(f"Failed to get custom voice channel role: {e}")
 		raise e
 	
 #######################################################################################################
@@ -180,7 +180,7 @@ async def initialize_voicemaster(guild: Guild):
 		try:
 			result = await get_voicemaster_settings(guild)
 		except Exception as e:
-			logger.error(f"Failed to get Voicemaster settings: {e}")
+			log.error(f"Failed to get Voicemaster settings: {e}")
 			return False
 		if result is None:
 			pool = await get_pool()
@@ -196,7 +196,7 @@ async def initialize_voicemaster(guild: Guild):
 					return True
 		return False
 	except Exception as e:
-		logger.error(f"Failed to initialize Voicemaster: {e}")
+		log.error(f"Failed to initialize Voicemaster: {e}")
 		return False
 
 async def reset_voicemaster_settings(guild: Guild) -> bool:
@@ -205,7 +205,7 @@ async def reset_voicemaster_settings(guild: Guild) -> bool:
 		try:
 			result = await get_voicemaster_settings(guild)
 		except Exception as e:
-			logger.error(f"Failed to get Voicemaster settings: {e}")
+			log.error(f"Failed to get Voicemaster settings: {e}")
 			return False
 		if result is not None:
 			pool = await get_pool()
@@ -221,7 +221,7 @@ async def reset_voicemaster_settings(guild: Guild) -> bool:
 			return True
 		return False
 	except Exception as e:
-		logger.error(f"Failed to reset Voicemaster settings: {e}")
+		log.error(f"Failed to reset Voicemaster settings: {e}")
 		return False
 	
 async def set_voicemaster_setting(
@@ -238,7 +238,7 @@ async def set_voicemaster_setting(
 				)
 				return True
 	except Exception as e:
-		logger.error(f"Failed to set Voicemaster setting: {e}")
+		log.error(f"Failed to set Voicemaster setting: {e}")
 		return False
 	
 async def init_category_channel_ids(guild: Guild, default_id: int) -> bool:
@@ -248,15 +248,15 @@ async def init_category_channel_ids(guild: Guild, default_id: int) -> bool:
 		try:
 			val = await set_voicemaster_setting(guild, "category_channel_ids", category_channel_ids)
 		except Exception as e:
-			logger.error(f"Failed to set category channel ids: {e}")
+			log.error(f"Failed to set category channel ids: {e}")
 			return False
 		if val:
-			logger.info(f"Initialized category channel ids: {category_channel_ids}")
+			log.info(f"Initialized category channel ids: {category_channel_ids}")
 			return True
-		logger.error("Failed to initialize category channel ids")
+		log.error("Failed to initialize category channel ids")
 		return False
 	except Exception as e:
-		logger.error(f"Failed to initialize category channel ids: {e}")
+		log.error(f"Failed to initialize category channel ids: {e}")
 		return False
 	
 async def set_category_channel_id(guild: Guild, category_id: int) -> bool:
@@ -265,7 +265,7 @@ async def set_category_channel_id(guild: Guild, category_id: int) -> bool:
 		try:
 			category_channel_ids = await get_voicemaster_setting(guild, "category_channel_ids")
 		except Exception as e:
-			logger.error(f"Failed to get category channel ids: {e}")
+			log.error(f"Failed to get category channel ids: {e}")
 			return False
 		if category_channel_ids is not None:
 			category_channel_ids = json.loads(category_channel_ids)
@@ -275,7 +275,7 @@ async def set_category_channel_id(guild: Guild, category_id: int) -> bool:
 			return val
 		return False
 	except Exception as e:
-		logger.error(f"Failed to set category channel id: {e}")
+		log.error(f"Failed to set category channel id: {e}")
 		return False
 	
 async def insert_custom_voice_channel(
@@ -286,12 +286,12 @@ async def insert_custom_voice_channel(
 		try:
 			default_role_id = await get_voicemaster_setting(channel.guild, "default_role_id")
 		except Exception as e:
-			logger.error(f"Failed to get default role: {e}")
+			log.error(f"Failed to get default role: {e}")
 			return False
 		try:
 			custom_channels_json = await get_voicemaster_setting(channel.guild, "custom_channels")
 		except Exception as e:
-			logger.error(f"Failed to get custom channels: {e}")
+			log.error(f"Failed to get custom channels: {e}")
 			return False
 		custom_channels: List[Dict] = json.loads(custom_channels_json)
 		custom_channels.append(
@@ -305,7 +305,7 @@ async def insert_custom_voice_channel(
 		val = await set_voicemaster_setting(channel.guild, "custom_channels", custom_channels_json)
 		return val
 	except Exception as e:
-		logger.error(f"Failed to insert voice channel: {e}")
+		log.error(f"Failed to insert voice channel: {e}")
 		return False
 	
 async def delete_custom_voice_channel(channel: VoiceChannel) -> bool:
@@ -314,7 +314,7 @@ async def delete_custom_voice_channel(channel: VoiceChannel) -> bool:
 		try:
 			custom_channels = await get_custom_voice_channels(channel.guild)
 		except Exception as e:
-			logger.error(f"Failed to get custom voice channels: {e}")
+			log.error(f"Failed to get custom voice channels: {e}")
 			return False
 		for custom_channel in custom_channels:
 			if custom_channel['channel_id'] == channel.id:
@@ -324,7 +324,7 @@ async def delete_custom_voice_channel(channel: VoiceChannel) -> bool:
 				return True
 		return False
 	except Exception as e:
-		logger.error(f"Failed to delete custom voice channel: {e}")
+		log.error(f"Failed to delete custom voice channel: {e}")
 		return False
 	
 async def set_custom_voice_channel_role(channel: VoiceChannel, role_id: int) -> bool:
@@ -333,7 +333,7 @@ async def set_custom_voice_channel_role(channel: VoiceChannel, role_id: int) -> 
 		try:
 			custom_channels = await get_custom_voice_channels(channel.guild)
 		except Exception as e:
-			logger.error(f"Failed to get custom voice channels: {e}")
+			log.error(f"Failed to get custom voice channels: {e}")
 			return False
 		for custom_channel in custom_channels:
 			if custom_channel['channel_id'] == channel.id:
@@ -343,7 +343,7 @@ async def set_custom_voice_channel_role(channel: VoiceChannel, role_id: int) -> 
 				return val
 		return False
 	except Exception as e:
-		logger.error(f"Failed to set custom voice channel role: {e}")
+		log.error(f"Failed to set custom voice channel role: {e}")
 		return False
 	
 async def transfer_custom_voice_channel(
@@ -354,7 +354,7 @@ async def transfer_custom_voice_channel(
 		try:
 			custom_channels = await get_custom_voice_channels(channel.guild)
 		except Exception as e:
-			logger.error(f"Failed to get custom voice channels: {e}")
+			log.error(f"Failed to get custom voice channels: {e}")
 			return False
 		for custom_channel in custom_channels:
 			if custom_channel['channel_id'] == channel.id:
@@ -364,5 +364,5 @@ async def transfer_custom_voice_channel(
 				return val
 		return False
 	except Exception as e:
-		logger.error(f"Failed to transfer custom voice channel: {e}")
+		log.error(f"Failed to transfer custom voice channel: {e}")
 		return False

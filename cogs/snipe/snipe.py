@@ -17,7 +17,7 @@ from helpers import (
 	make_embed_snipe_reaction
 )
 
-logger = logging.getLogger(__name__)
+log = logging.getLogger(__name__)
 
 class Snipe(commands.Cog):
 	"""Commands for sniping deleted and edited messages"""
@@ -26,9 +26,9 @@ class Snipe(commands.Cog):
 			self.bot: Sparky = bot
 			self.clear_old_snipes.start()
 
-			logger.info(f"{self.qualified_name} initialized successfully!")
+			log.info(f"{self.qualified_name} initialized successfully!")
 		except Exception as e:
-			logger.error(f"ERROR: Failed to initialize {self.qualified_name}: {e}")
+			log.error(f"ERROR: Failed to initialize {self.qualified_name}: {e}")
 
 	@property
 	def display_emoji(self) -> discord.PartialEmoji:
@@ -74,7 +74,7 @@ class Snipe(commands.Cog):
 							(message.guild.id, message.channel.id, message.author.id, message_json, message.id,)
 						)
 		except Exception as e:
-			logger.error(f"An error occurred in Snipe on_message_delete: {e}")
+			log.error(f"An error occurred in Snipe on_message_delete: {e}")
 
 	@commands.Cog.listener()
 	async def on_message_edit(self, original_message: discord.Message, edited_message: discord.Message):
@@ -109,7 +109,7 @@ class Snipe(commands.Cog):
 						(payload.guild_id, payload.channel_id, payload.user_id, payload.emoji.name, payload.message_id)
 					)
 		except Exception as e:
-			logger.error(f"An error occurred in Snipe on_raw_reaction_remove: {e}")
+			log.error(f"An error occurred in Snipe on_raw_reaction_remove: {e}")
 
 	@commands.command(
 		name='snipe', 
@@ -206,7 +206,7 @@ class Snipe(commands.Cog):
 						embed = make_embed_snipe_not_found(ctx.author, 1)
 						await ctx.send(embed)
 		except Exception as e:
-			logger.error(f"An error occurred in Snipe snipe_deleted_message: {e}")
+			log.error(f"An error occurred in Snipe snipe_deleted_message: {e}")
 			await ctx.error(f"An error occurred: {e}")
 
 	@commands.command(
@@ -255,10 +255,10 @@ class Snipe(commands.Cog):
 						try:
 							message_author = await self.bot.fetch_user(author_id)
 						except discord.NotFound:
-							logger.error(f"Couldn't find a user")
+							log.error(f"Couldn't find a user")
 							return
 						except discord.HTTPException:
-							logger.error("Failed to fetch the user")
+							log.error("Failed to fetch the user")
 							return
 						sniped_message_json = edited_message['message']
 						sniped_message = json.loads(sniped_message_json)
@@ -316,10 +316,10 @@ class Snipe(commands.Cog):
 						try:
 							reaction_author = await self.bot.fetch_user(author_id)
 						except discord.NotFound:
-							logger.error(f"Couldn't find a user")
+							log.error(f"Couldn't find a user")
 							return
 						except discord.HTTPException:
-							logger.error("Failed to fetch the user")
+							log.error("Failed to fetch the user")
 							return
 						reaction_name = removed_reaction['reaction']
 						message_id = removed_reaction['message_id']
@@ -368,7 +368,7 @@ class Snipe(commands.Cog):
 					)
 			await ctx.message.add_reaction("✅")
 		except Exception as e:
-			logger.error(f"An error occurred in Snipe snipe_clear: {e}")
+			log.error(f"An error occurred in Snipe snipe_clear: {e}")
 			await ctx.message.add_reaction("❌")
 
 	async def get_message_info(self, message: discord.Message, flag: Literal['snipe', 'edit']) -> str:

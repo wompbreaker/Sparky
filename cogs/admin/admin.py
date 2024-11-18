@@ -17,7 +17,7 @@ from helpers import (
 )
 from .db import init_prefix, deinit_prefix
 
-logger = logging.getLogger(__name__)
+log = logging.getLogger(__name__)
 
 class Admin(commands.Cog):
 	"""Commands for the bot owner to manage the bot"""
@@ -25,9 +25,9 @@ class Admin(commands.Cog):
 	def __init__(self, bot: Sparky):
 		try:
 			self.bot: Sparky = bot
-			logger.info(f"{self.qualified_name} initialized successfully!")
+			log.info(f"{self.qualified_name} initialized successfully!")
 		except Exception as e:
-			logger.error(f"ERROR: Failed to initialize {self.qualified_name}: {e}")
+			log.error(f"ERROR: Failed to initialize {self.qualified_name}: {e}")
 
 	@property
 	def display_emoji(self) -> discord.PartialEmoji:
@@ -45,7 +45,7 @@ class Admin(commands.Cog):
 				if guild.id == int(guild_id.strip()):
 					blacklisted = True
 					await guild.leave()
-					logger.info(f"> {guild.name} ({guild.id}) is blacklisted. Left the guild.")
+					log.info(f"> {guild.name} ({guild.id}) is blacklisted. Left the guild.")
 		if not blacklisted:
 			await init_prefix(guild.id)
 
@@ -59,7 +59,7 @@ class Admin(commands.Cog):
 		bot_guilds = []
 		for guild in self.bot.guilds:
 			bot_guilds.append((guild.name, guild.id))
-		logger.info(bot_guilds)
+		log.info(bot_guilds)
 		await ctx.send(f"Bot guilds: {bot_guilds}")
 
 	@commands.command(hidden=True)
@@ -125,9 +125,9 @@ class Admin(commands.Cog):
 				guild = self.bot.get_guild(guild_id)
 
 			await guild.leave()
-			logger.info(f"Left the guild {guild.name} ({guild.id})")
+			log.info(f"Left the guild {guild.name} ({guild.id})")
 		except Exception as e:
-			logger.error(f"Failed to leave the guild {guild.name} ({guild.id}): {e}")
+			log.error(f"Failed to leave the guild {guild.name} ({guild.id}): {e}")
 
 	@commands.group(aliases=["bl"], hidden=True, invoke_without_command=True)
 	@commands.is_owner()
@@ -141,21 +141,21 @@ class Admin(commands.Cog):
 				guild = self.bot.get_guild(guild_id)
 
 			if guild:
-				logger.info(f"> Left the guild {guild.name} ({guild.id})")
+				log.info(f"> Left the guild {guild.name} ({guild.id})")
 				try:
 					if guild in self.bot.guilds:
 						await guild.leave()
 						await ctx.success(f"Left the guild {guild.name} ({guild.id})")
 					with open("blacklist.txt", "a") as file:
 						file.write(f"{str(guild_id)}\n")
-					logger.info(f"> Blacklisted {guild.name}")
+					log.info(f"> Blacklisted {guild.name}")
 
 				except Exception as e:
 					await ctx.error(f"Failed to blacklist guild with ID : {guild_id}")
 			else:
 				await ctx.warning("Unknown guild")
 		except Exception as e:
-			logger.error(f"Error in blacklist: {e}")
+			log.error(f"Error in blacklist: {e}")
 
 	@blacklist.command(hidden=True)
 	@commands.is_owner()
@@ -231,7 +231,7 @@ class Admin(commands.Cog):
 				messages.append(f"Successfully unloaded **{category.name}** cog.")
 			except Exception as e:
 				messages.append(f"Failed to unload cog: **{category.name}** cog: {e}")
-				logger.error(f"ERROR occurred while unloading {category.name}: {e}")
+				log.error(f"ERROR occurred while unloading {category.name}: {e}")
 				continue
 		messages.append(f"Successfully unloaded **{loaded_count}/{total_count}** extensions.")
 		await ctx.success("\n".join(messages))
@@ -250,7 +250,7 @@ class Admin(commands.Cog):
 			embed = make_embed_success(ctx.author, message)
 			await reload_message.edit(embed=embed)
 		except Exception as e:
-			logger.exception(e)
+			log.exception(e)
 			await ctx.error(f"Failed to reload cog: **{extension.lower()}**: {e}")
 
 	async def reload_or_load_extension(self, path: str) -> None:
@@ -287,7 +287,7 @@ class Admin(commands.Cog):
 				messages.append(f"Successfully reloaded **{category.name}** cog.")
 			except Exception as e:
 				messages.append(f"Failed to reload cog: **{category.name}** cog: {e}")
-				logger.error(f"ERROR occurred while reloading {category.name}: {e}")
+				log.error(f"ERROR occurred while reloading {category.name}: {e}")
 				continue
 
 		messages.append(f"Successfully reloaded **{loaded_count}/{total_count}** extensions.")

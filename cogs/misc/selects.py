@@ -4,7 +4,7 @@ import logging
 from .modals import *
 from helpers import make_embed_error
 
-logger = logging.getLogger(__name__)
+log = logging.getLogger(__name__)
 
 class EditFieldSelect(Select):
 	def __init__(self, message: Message, embed: Embed):
@@ -16,7 +16,7 @@ class EditFieldSelect(Select):
 			) for i, field in enumerate(embed.fields)]
 			super().__init__(options=options, min_values=1, max_values=1)
 		except Exception as e:
-			logger.error(f"An error occurred in EditFieldSelect init: {e}")
+			log.error(f"An error occurred in EditFieldSelect init: {e}")
 
 	async def callback(self, interaction: Interaction):
 		index = int(self.values[0])

@@ -14,7 +14,7 @@ from helpers import (
 )
 from .views import *
 
-logger = logging.getLogger(__name__)
+log = logging.getLogger(__name__)
 
 class Info(commands.Cog):
 	"""Commands that provide information about users, servers, and roles."""
@@ -23,9 +23,9 @@ class Info(commands.Cog):
 		try:
 			self.bot: Sparky = bot
 			
-			logger.info(f"{self.qualified_name} initialized successfully!")
+			log.info(f"{self.qualified_name} initialized successfully!")
 		except Exception as e:
-			logger.error(f"ERROR: Failed to initialize {self.qualified_name}: {e}")
+			log.error(f"ERROR: Failed to initialize {self.qualified_name}: {e}")
 
 	@property
 	def display_emoji(self) -> discord.PartialEmoji:
@@ -316,7 +316,7 @@ class Info(commands.Cog):
 			embed.add_field(name="Role Members", value=f"{len(role.members)} members", inline=True)
 			await ctx.send(embed)
 		except Exception as e:
-			logger.error(f"{type(e)} - {e}")
+			log.error(f"{type(e)} - {e}")
 
 	@commands.command(
 		name='members',
@@ -350,7 +350,7 @@ class Info(commands.Cog):
 					await ctx.send(file=discord.File(file, filename=filename))
 				os.remove(filename)
 		except Exception as e:
-			logger.error(f"{type(e)} - {e}")
+			log.error(f"{type(e)} - {e}")
 
 
 	@commands.command(
@@ -379,4 +379,4 @@ class Info(commands.Cog):
 			embed.set_author(name=f"{ctx.guild.name} statistics", icon_url=ctx.guild.icon.url)
 			await ctx.send(embed)
 		except Exception as e:
-			logger.error(e)
+			log.error(e)

@@ -4,7 +4,7 @@ import logging
 import json
 from helpers import get_pool
 
-logger = logging.getLogger(__name__)
+log = logging.getLogger(__name__)
 
 __all__ = (
 	'init_antinuke_system',
@@ -51,7 +51,7 @@ async def init_antinuke_system(guild_id: int) -> bool:
 				)
 				return True
 	except Exception as e:
-		logger.error(f"Failed to initialize Antinuke system: {e}")
+		log.error(f"Failed to initialize Antinuke system: {e}")
 		return False
 	
 async def deinit_antinuke_system(guild_id: int) -> bool:
@@ -77,7 +77,7 @@ async def deinit_antinuke_system(guild_id: int) -> bool:
 				)
 				return True
 	except Exception as e:
-		logger.error(f"Failed to deinitialize Antinuke system: {e}")
+		log.error(f"Failed to deinitialize Antinuke system: {e}")
 		return False
 
 #######################################################################################################
@@ -114,7 +114,7 @@ async def get_antinuke_setting(
 				result = await cur.fetchone()
 				return result[setting] if result else None
 	except Exception as e:
-		logger.error(f"Failed to get Antinuke setting: {e}")
+		log.error(f"Failed to get Antinuke setting: {e}")
 		raise e
 	
 async def get_antinuke_admins(
@@ -135,7 +135,7 @@ async def get_antinuke_admins(
 	try:
 		admins_json = await get_antinuke_setting(guild_id, 'admins')
 	except Exception as e:
-		logger.error(f"Failed to get Antinuke admins: {e}")
+		log.error(f"Failed to get Antinuke admins: {e}")
 		raise e
 	
 	if admins_json is not None:
@@ -184,7 +184,7 @@ async def get_whitelist(
 	try:
 		whitelist_json = await get_antinuke_setting(guild_id, 'whitelist')
 	except Exception as e:
-		logger.error(f"Failed to get Antinuke whitelist: {e}")
+		log.error(f"Failed to get Antinuke whitelist: {e}")
 		raise e
 	if whitelist_json is not None:
 		return json.loads(whitelist_json)
@@ -233,7 +233,7 @@ async def get_botadd_settings(
 		botadd = await get_antinuke_setting(guild_id, 'botadd')
 		return True if botadd == 1 else False
 	except Exception as e:
-		logger.error(f"Failed to get botadd settings: {e}")
+		log.error(f"Failed to get botadd settings: {e}")
 		raise e
 
 async def get_vanity_settings(
@@ -258,7 +258,7 @@ async def get_vanity_settings(
 		punishment = vanity['punishment']
 		return enabled, punishment
 	except Exception as e:
-		logger.error(f"Failed to get vanity settings: {e}")
+		log.error(f"Failed to get vanity settings: {e}")
 		raise e
 	
 async def get_antinuke_parameters(
@@ -288,7 +288,7 @@ async def get_antinuke_parameters(
 		threshold = result['threshold']
 		return enabled, threshold, punishment
 	except Exception as e:
-		logger.error(f"Failed to get Antinuke settings: {e}")
+		log.error(f"Failed to get Antinuke settings: {e}")
 		raise e
 	
 	
@@ -316,7 +316,7 @@ async def get_permissions_settings(
 		punishment = permissions['punishment']
 		return enabled, grant, remove, punishment
 	except Exception as e:
-		logger.error(f"Failed to get permissions settings: {e}")
+		log.error(f"Failed to get permissions settings: {e}")
 		raise e
 	
 #######################################################################################################
@@ -356,7 +356,7 @@ async def set_antinuke_setting(
 				)
 				return True
 	except Exception as e:
-		logger.error(f"Failed to set Antinuke setting: {e}")
+		log.error(f"Failed to set Antinuke setting: {e}")
 		return False
 	
 async def set_antinuke_parameters(
@@ -404,7 +404,7 @@ async def set_antinuke_parameters(
 		value = json.dumps(current_settings)
 		return await set_antinuke_setting(guild_id, setting, value)
 	except Exception as e:
-		logger.error(f"Failed to set Antinuke settings: {e}")
+		log.error(f"Failed to set Antinuke settings: {e}")
 		return False
 	
 async def set_permissions_settings(
@@ -469,7 +469,7 @@ async def set_permissions_settings(
 		value = json.dumps(value)
 		return await set_antinuke_setting(guild_id, 'permissions', value)
 	except Exception as e:
-		logger.error(f"Failed to set permissions settings: {e}")
+		log.error(f"Failed to set permissions settings: {e}")
 		return False
 	
 async def set_vanity_settings(
@@ -503,6 +503,6 @@ async def set_vanity_settings(
 		value = json.dumps(value)
 		return await set_antinuke_setting(guild_id, 'vanity', value)
 	except Exception as e:
-		logger.error(f"Failed to set vanity settings: {e}")
+		log.error(f"Failed to set vanity settings: {e}")
 		return False
 	

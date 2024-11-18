@@ -14,16 +14,16 @@ from helpers import (
 	make_embed_mute
 )
 
-logger = logging.getLogger(__name__)
+log = logging.getLogger(__name__)
 
 class Mute(commands.Cog):
 	def __init__(self, bot: Sparky):
 		try:
 			self.bot: Sparky = bot
 			self.periodically_empty_muted_users.start()
-			logger.info(f"{self.qualified_name} initialized successfully!")
+			log.info(f"{self.qualified_name} initialized successfully!")
 		except Exception as e:
-			logger.error(f"ERROR: Failed to initialize {self.qualified_name}: {e}")
+			log.error(f"ERROR: Failed to initialize {self.qualified_name}: {e}")
 
 	@property
 	def display_emoji(self) -> discord.PartialEmoji:
@@ -39,9 +39,9 @@ class Mute(commands.Cog):
 						(False, False, False,)
 					)
 		except aiomysql.MySQLError as e:
-			logger.error(f"Database error in {self.qualified_name} periodically_empty_muted_users: {e}")
+			log.error(f"Database error in {self.qualified_name} periodically_empty_muted_users: {e}")
 		except Exception as e:
-			logger.error(f"Error in {self.qualified_name} periodically_empty_muted_users: {e}")
+			log.error(f"Error in {self.qualified_name} periodically_empty_muted_users: {e}")
 
 	@periodically_empty_muted_users.before_loop
 	async def before_periodically_empty_muted_users(self):
@@ -93,7 +93,7 @@ class Mute(commands.Cog):
 									rmuted_role = member.guild.get_role(rmuted_role_id)
 									await member.add_roles(rmuted_role)
 		except Exception as e:
-			logger.error(f"Error in {self.qualified_name} on_member_join: {e}")
+			log.error(f"Error in {self.qualified_name} on_member_join: {e}")
 
 	@commands.Cog.listener()
 	async def on_member_update(self, member_before: discord.Member, member_after: discord.Member):
@@ -148,9 +148,9 @@ class Mute(commands.Cog):
 							)
 							
 		except aiomysql.MySQLError as e:
-			logger.error(f"Database error in {self.qualified_name} on_member_update: {e}")
+			log.error(f"Database error in {self.qualified_name} on_member_update: {e}")
 		except Exception as e:
-			logger.error(f"Error in {self.qualified_name} on_member_update: {e}")
+			log.error(f"Error in {self.qualified_name} on_member_update: {e}")
 
 	# Function to set channel permission
 	async def set_channel_perm(self, channel: discord.abc.GuildChannel, role: discord.Role, overwrite: discord.PermissionOverwrite):
@@ -158,7 +158,7 @@ class Mute(commands.Cog):
 			if not isinstance(channel, discord.CategoryChannel):
 				await channel.set_permissions(role, overwrite=overwrite)
 		except Exception as e:
-			logger.error(f"An error has occurred in setting {role} creation: {e}")
+			log.error(f"An error has occurred in setting {role} creation: {e}")
 
 	@commands.command(name='setupmute')
 	@commands.bot_has_guild_permissions(manage_guild=True, manage_channels=True, manage_roles=True)
@@ -186,7 +186,7 @@ class Mute(commands.Cog):
 						# first time setup
 						is_already_setup = False
 		except Exception as e:
-			logger.error(f"An error has occurred in {self.qualified_name} database check setupmute: {e}")
+			log.error(f"An error has occurred in {self.qualified_name} database check setupmute: {e}")
 			message = "An error has occurred while checking the database"
 			error_embed = make_embed_error(ctx.author, message)
 			await progress_message.edit(embed=error_embed)
@@ -226,7 +226,7 @@ class Mute(commands.Cog):
 				await self.set_channel_perm(channel, muted_role, muted_overwrite)
 
 		except Exception as e:
-			logger.error(f"An error has occurred in {self.qualified_name} text muted setupmute: {e}")
+			log.error(f"An error has occurred in {self.qualified_name} text muted setupmute: {e}")
 			message = "An error has occurred while creating the **text mute** role"
 			error_embed = make_embed_error(ctx.author, message)
 			await progress_message.edit(embed=error_embed)
@@ -254,7 +254,7 @@ class Mute(commands.Cog):
 				await self.set_channel_perm(channel, imuted_role, imuted_overwrite)
 
 		except Exception as e:
-			logger.error(f"An error has occurred in {self.qualified_name} image muted setupmute: {e}")
+			log.error(f"An error has occurred in {self.qualified_name} image muted setupmute: {e}")
 			message = "An error has occurred while creating the **image mute** role"
 			error_embed = make_embed_error(ctx.author, message)
 			await progress_message.edit(embed=error_embed)
@@ -282,7 +282,7 @@ class Mute(commands.Cog):
 				await self.set_channel_perm(channel, rmuted_role, rmuted_overwrite)
 
 		except Exception as e:
-			logger.error(f"An error has occurred in {self.qualified_name} reaction muted setupmute: {e}")
+			log.error(f"An error has occurred in {self.qualified_name} reaction muted setupmute: {e}")
 			message = "An error has occurred while creating the **reaction and external emoji mute** role"
 			error_embed = make_embed_error(ctx.author, message)
 			await progress_message.edit(embed=error_embed)
@@ -308,7 +308,7 @@ class Mute(commands.Cog):
 						
 
 		except Exception as e:
-			logger.error(f"An error has occurred in {self.qualified_name} database update setupmute: {e}")
+			log.error(f"An error has occurred in {self.qualified_name} database update setupmute: {e}")
 			message = "An error has occurred while creating the **reaction and external emoji mute** role"
 			error_embed = make_embed_error(ctx.author, message)
 			await progress_message.edit(embed=error_embed)

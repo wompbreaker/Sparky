@@ -122,7 +122,7 @@ class EmbedView(View):
 			embed = make_embed_warning(interaction.user, error_message)
 			await interaction.response.send_message(embed=embed, ephemeral=True)
 		except Exception as e:
-			logger.error(f"{type(e)} An error occurred in EmbedView edit_field: {e}")
+			log.error(f"{type(e)} An error occurred in EmbedView edit_field: {e}")
 			embed = make_embed_error(
 				interaction.user, f"An error occurred: {e}"
 			)
@@ -144,7 +144,7 @@ class EmbedView(View):
 			error_embed = make_embed_warning(interaction.user, error_message)
 			await interaction.response.send_message(embed=error_embed, ephemeral=True)
 		except Exception as e:
-			logger.error(f"{type(e)} An error occurred in delete_field: {e}")
+			log.error(f"{type(e)} An error occurred in delete_field: {e}")
 			error_embed = make_embed_error(
 				interaction.user, f"An error occurred: {e}"
 			)

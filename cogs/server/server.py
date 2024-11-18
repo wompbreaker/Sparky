@@ -9,16 +9,16 @@ from helpers import (
 )
 from .db import check_prefix_exists
 
-logger = logging.getLogger(__name__)
+log = logging.getLogger(__name__)
 
 class Server(commands.Cog):
 	"""Commands for server management"""
 	def __init__(self, bot: Sparky):
 		try:
 			self.bot: Sparky = bot
-			logger.info(f"{self.qualified_name} initialized successfully!")
+			log.info(f"{self.qualified_name} initialized successfully!")
 		except Exception as e:
-			logger.error(f"ERROR: Failed to initialize {self.qualified_name}: {e}")
+			log.error(f"ERROR: Failed to initialize {self.qualified_name}: {e}")
 
 	@property
 	def display_emoji(self) -> discord.PartialEmoji:
@@ -46,7 +46,7 @@ class Server(commands.Cog):
 				)
 				await ctx.send(embed)
 		except Exception as e:
-			logger.error(f"An error occurred in Server display_prefix: {e}")
+			log.error(f"An error occurred in Server display_prefix: {e}")
 
 	@display_prefix.command(
 		name='set', 

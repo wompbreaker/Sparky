@@ -3,7 +3,7 @@ from discord.ext import commands
 from logging import getLogger
 from .db import get_custom_voice_channels
 
-logger = getLogger(__name__)
+log = getLogger(__name__)
 
 class NotVoiceMember(commands.CheckFailure):
 	pass
@@ -19,7 +19,7 @@ def is_voice_owner():
 			try:
 				custom_channels = await get_custom_voice_channels(ctx.guild)
 			except Exception as e:
-				logger.error(f"Failed to get custom voice channels: {e}")
+				log.error(f"Failed to get custom voice channels: {e}")
 				return False
 			for voice_channel in voice_channels:
 				if voice_channel.id in [custom_channel['channel_id'] for custom_channel in custom_channels]:
@@ -39,7 +39,7 @@ def is_voice_member():
 			try:
 				custom_channels = await get_custom_voice_channels(ctx.guild)
 			except Exception as e:
-				logger.error(f"Failed to get custom voice channels: {e}")
+				log.error(f"Failed to get custom voice channels: {e}")
 				return False
 			for voice_channel in voice_channels:
 				if voice_channel.id in [custom_channel['channel_id'] for custom_channel in custom_channels]:

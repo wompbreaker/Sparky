@@ -263,9 +263,6 @@ class Admin(commands.Cog):
 	@commands.is_owner()
 	async def reload_all(self, ctx: Context):
 		"""Reloads all loaded cogs"""
-		admin_filename = "admin"
-		misc_filename = "misc"
-		embed_filename = "embeds"
 		loaded_count = 0
 		total_count = 0
 		messages = []
@@ -277,42 +274,12 @@ class Admin(commands.Cog):
 				continue
 			total_count += 1
 
-		LOADING = Emojis().get_emoji('loading')
 		embed = make_embed_loading(ctx.author, "Reloading all extensions")
 		reload_message = await ctx.send(embed)
-		# Reload the Admin cog first
-		try:
-			await self.bot.reload_extension('.'.join((category / admin_filename).parts))
-			loaded_count += 1
-			messages.append(f"Successfully reloaded **{admin_filename}** cog.")
-		except Exception as e:
-			messages.append(f"Failed to reload cog: **{admin_filename}** cog: {e}")
-			logger.error(f"ERROR occurred while reloading {admin_filename} for the first time: {e}")
-		# Reload the Misc cog next
-		try:
-			await self.bot.reload_extension('.'.join((category / misc_filename).parts))
-			loaded_count += 1
-			messages.append(f"Successfully reloaded **{misc_filename}** cog.")
-		except Exception as e:
-			messages.append(f"Failed to reload cog: **{misc_filename}** cog: {e}")
-			logger.error(f"ERROR occurred while reloading {misc_filename} for the first time: {e}")
-
-		# Reload the Embed cog next
-		try:
-			await self.bot.reload_extension('.'.join((category / embed_filename).parts))
-			loaded_count += 1
-			messages.append(f"Successfully reloaded **{embed_filename}** cog.")
-		except Exception as e:
-			messages.append(f"Failed to reload cog: **{embed_filename}** cog: {e}")
-			logger.error(f"ERROR occurred while reloading {embed_filename} for the first time: {e}")
-
-		# Reload other cogs
 		for category in Path('cogs').iterdir():
 			if not category.is_dir():
 				continue
 			elif not (category / '__init__.py').is_file():
-				continue
-			if category.name in [admin_filename, misc_filename, embed_filename]:
 				continue
 			try:
 				await self.bot.reload_extension('.'.join(category.parts)) 

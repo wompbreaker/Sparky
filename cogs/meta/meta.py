@@ -44,7 +44,7 @@ class Meta(commands.Cog):
 
     @property
     def display_emoji(self) -> discord.PartialEmoji:
-        return discord.PartialEmoji(name='\N{WHITE QUESTION MARK ORNAMENT}')
+        return Emojis().get_emoji('question')
 
     def cog_unload(self):
         self.bot.help_command = self.old_help_command

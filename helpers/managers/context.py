@@ -26,12 +26,12 @@ class Context(DiscordContext):
 		if reference and isinstance(reference.resolved, Message):
 			return reference.resolved
 	
-	async def warning(self, warn_message: str, ephemeral=False, **kwargs) -> Optional[Message]:
+	async def warning(self, warning_message: str, ephemeral=False, **kwargs) -> Optional[Message]:
 		"""Sends a warning embed with the provided message
 		
 		Parameters
 		----------
-		warn_message : str
+		warning_message : str
 			The message to be displayed in the embed
 
 		ephemeral : bool
@@ -45,7 +45,11 @@ class Context(DiscordContext):
 		Message
 			The message that was sent
 		"""
-		return await self.warn(warn_message, ephemeral=ephemeral, **kwargs)
+		return await self.send(
+			make_embed_warning(self.author, warning_message),
+			ephemeral=ephemeral,
+			**kwargs
+		)
 	
 	async def error(self, error_message: str, ephemeral=False, **kwargs) -> Optional[Message]:
 		"""Send an error embed with the provided message

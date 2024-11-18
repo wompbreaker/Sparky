@@ -2,17 +2,18 @@ import logging
 import discord
 from discord.ext import commands
 from typing import Optional
-from helpers import Context
+from helpers import Context, Emojis
 from .views import EmbedView
 
 # if TYPE_CHECKING:
 from bot import Sparky
-bot = Sparky()
 
 logger = logging.getLogger(__name__)
+
 DEFAULT_AUTHOR_TEXT = "embed creation"
-DEFAULT_DESCRIPTION = """Use the buttons below to customize this embed. 
-You can click the `Code` button to copy this embed or use `embed preview {name}` to show this embed."""
+DEFAULT_DESCRIPTION = ("Use the buttons below to customize this embed. "
+					   "You can click the `Code` button to copy this embed or "
+					   "use `embed preview {name}` to show this embed.")
 DEFAULT_COLOR = discord.Color(0x747f8d)
 
 class Misc(commands.Cog):
@@ -22,6 +23,10 @@ class Misc(commands.Cog):
 			logger.info(f"{self.qualified_name} initialized successfully!")
 		except Exception as e:
 			logger.error(f"ERROR: Failed to initialize {self.qualified_name}: {e}")
+
+	@property
+	def display_emoji(self) -> discord.PartialEmoji:
+		return Emojis().get_emoji("misc")	
 
 #######################################################################################################
 #                                           COMMANDS                                                  #

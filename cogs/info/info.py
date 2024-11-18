@@ -380,10 +380,3 @@ class Info(commands.Cog):
 			await ctx.send(embed)
 		except Exception as e:
 			logger.error(e)
-
-async def setup(bot: Sparky):
-	try:
-		await bot.add_cog(Info(bot))
-	except Exception as e:
-		logger.error(f"ERROR: Failed to setup Info: {e}")
-

@@ -238,9 +238,3 @@ class Fun(commands.Cog):
         source = StealPageSource(emojis)
         view = StealMenu(source, ctx=ctx)
         await view.start()
-
-async def setup(bot: Sparky):
-    try:
-        await bot.add_cog(Fun(bot))
-    except Exception as e:
-        logger.error(f"ERROR: Failed to setup Fun: {e}")

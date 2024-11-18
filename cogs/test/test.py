@@ -139,9 +139,3 @@ class Test(commands.Cog):
         """Unicode command"""
         emoji = Emojis().get_emoji(unicode)
         await ctx.send(f"{emoji}")
-
-async def setup(bot: Sparky):
-    try:
-        await bot.add_cog(Test(bot))
-    except Exception as e:
-        logger.error(f"ERROR: Failed to setup Test cog: {e}")

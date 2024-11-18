@@ -2383,10 +2383,3 @@ class Moderation(commands.Cog):
 					await conn.commit()
 		except Exception as e:
 			logger.error(f"An error has occurred in setting ban history: {e}")
-
-
-async def setup(bot: Sparky):
-	try:
-		await bot.add_cog(Moderation(bot))
-	except Exception as e:
-		logger.error(f"ERROR: Failed to setup Moderation cog: {e}")

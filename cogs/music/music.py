@@ -32,9 +32,3 @@ class Music(commands.Cog):
 		"""Stops and disconnects the bot from voice"""
 
 		await ctx.voice_client.disconnect()
-
-async def setup(bot: Sparky):
-	try:
-		await bot.add_cog(Music(bot))
-	except Exception as e:
-		print(f"ERROR: Failed to setup Music: {e}")

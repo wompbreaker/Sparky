@@ -119,7 +119,8 @@ class Sparky(commands.Bot):
             if isinstance(error.original, commands.ExtensionError):
                 await handle_extension_error(ctx, error.original)
             else:
-                log.error(f"An error occurred in on_command_error: {type(error)}: {error}")
+                log.error(f"{error.__qualname__}: {error}")
+                await ctx.error(f"An error occurred: {error}")
         elif isinstance(error, commands.BadArgument):
             await handle_bad_argument(ctx, error)
         elif isinstance(error, commands.BadUnionArgument):

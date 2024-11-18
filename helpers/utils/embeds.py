@@ -132,7 +132,7 @@ def make_embed_remove(self, author: Member, remove_message: str) -> Embed:
 def make_embed_success(author: Member, success_message: str) -> Embed:
     lrm = "\u200E"
     embed = Embed(
-        color = Color(0x747f8d),
+        color = Color(0xa4f074),
         description = f"{lrm}{APPROVE} {author.mention}: {success_message}"
     )
     return embed

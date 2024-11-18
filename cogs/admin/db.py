@@ -1,7 +1,8 @@
-from aiomysql import DictCursor, Pool
-import logging
+from logging import getLogger
 
-log = logging.getLogger(__name__)
+from aiomysql import DictCursor, Pool
+
+log = getLogger(__name__)
 
 async def init_prefix(pool: Pool, guild_id: int):
 	DEFAULT_PREFIX = ","
@@ -9,7 +10,8 @@ async def init_prefix(pool: Pool, guild_id: int):
 		async with pool.acquire() as conn:
 			async with conn.cursor(DictCursor) as cur:
 				await cur.execute(
-					"INSERT INTO guild_prefixes (guild_id, guild_prefix, is_set_prefix) VALUES (%s, %s, %s);",
+					"INSERT INTO guild_prefixes (guild_id, guild_prefix, "
+					"is_set_prefix) VALUES (%s, %s, %s);",
 					(guild_id, DEFAULT_PREFIX, True,)
 				)
 	except Exception as e:

@@ -1215,12 +1215,6 @@ class Antinuke(commands.Cog):
 		whitelisted = await is_whitelisted(member.guild, member)
 		if whitelisted or member == member.guild.me or member == member.guild.owner:
 			return
-		if punishment == 'none':
-			pass
-		if punishment == "warn":
-			await self.warn(member, member.guild, member.guild.me, reason)
-		if punishment == "jail":
-			await self.jail_member(member, reason)
 		if punishment == "kick":
 			try:
 				await member.kick(reason=f"Kicked for {reason}")
@@ -1233,14 +1227,6 @@ class Antinuke(commands.Cog):
 				logger.error(f"{type(e)} error in punish_moderator ban: {e}")
 		if punishment == "stripstaff":
 			await self.strip_staff(member)
-
-	async def warn(self, member: discord.Member, guild: discord.Guild, moderator: discord.Member, reason: str):
-		embed = make_embed_warn(guild, moderator, reason)
-		dm_channel = await member.create_dm()
-		try:
-			await dm_channel.send(embed=embed)
-		except discord.HTTPException as e:
-			logger.error(f"Error in warn: {e}")
 
 	async def strip_staff(self, member: discord.Member | discord.User):
 		# check if a role in member's roles has any of the following perms:
@@ -1271,62 +1257,3 @@ class Antinuke(commands.Cog):
 						removed_roles.append(role)
 					except (discord.Forbidden, discord.NotFound):
 						continue
-
-	async def jail_member(self, member: discord.Member, reason):
-		try:
-			async with self.bot.pool.acquire() as conn:
-				async with conn.cursor(aiomysql.DictCursor) as cur:
-					await cur.execute(
-						"SELECT * FROM jail_system WHERE guild_id = %s;",
-						(member.guild.id,)
-					)
-					result = await cur.fetchone()
-					if result:
-						jailed_role_id = result['jailed_id']
-						jailed_role = member.guild.get_role(jailed_role_id)
-						jail_channel_id = result['jail_channel_id']
-						jail_channel = member.guild.get_channel(jail_channel_id)
-						if not jailed_role:
-							jailed_role_exists = False
-						else:
-							jailed_role_exists = True
-						if not jail_channel:
-							jail_channel_exists = False
-						else:
-							jail_channel_exists = True
-					else:
-						jailed_role_exists = False
-						jail_channel_exists = False
-		except Exception as e:
-			logger.error(f"Error in {self.qualified_name} jail_member: {e}")
-			return
-
-		try:
-			if jailed_role_exists is False:
-				warning_message = f"No **jailed** role was found, please run the `setup` command first"
-				logger.error(warning_message)
-				return
-
-			if jail_channel_exists is False:
-				warning_message = f"No **jail channel** was found, please run the `setup` command first"
-				logger.error(warning_message)
-				return
-
-			if jailed_role >= member.guild.me.top_role:
-				message = "The **jailed role** is higher than my top role! Please **move it below my top role**."
-				logger.error(message)
-				return
-
-			# Try to jail a member
-			role_check = member.get_role(jailed_role.id)
-			# check if a member already has that role
-			if role_check is None:  # means the member doesn't have that role
-				await member.add_roles(jailed_role)
-			else:  # means the member already has that role
-				message = f"{member.mention} is already **jailed**!"
-				logger.error(message)
-				return
-
-			await jail_channel.send(f"{member.mention} You have been jailed for **{reason}**")
-		except Exception as e:
-			logger.error(f"Error in {self.qualified_name} jail_member: {e}")

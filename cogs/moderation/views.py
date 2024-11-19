@@ -1,13 +1,8 @@
-from discord.ext.menus import (
-	ListPageSource,
-	PageSource
-)
+from logging import getLogger
+
+from discord.ext.menus import ListPageSource, PageSource
 from discord.abc import GuildChannel
-from discord.ui import (
-	View,
-	Button,
-	button
-)
+from discord.ui import View, Button, button
 from discord import (
 	ButtonStyle,
 	Embed,
@@ -15,15 +10,15 @@ from discord import (
 	Message,
 	Interaction
 )
+
 from helpers import (
 	make_embed_error,
 	make_embed_warning,
 	Context,
 	SparkyPages
 )
-import logging
 
-log = logging.getLogger(__name__)
+log = getLogger(__name__)
 
 __all__ = (
 	"IgnoredChannelsPageSource",

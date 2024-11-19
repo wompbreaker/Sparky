@@ -1,5 +1,6 @@
-import logging
+from logging import getLogger
 from typing import List, Optional, Literal
+
 from discord import (
 	Member,
 	Guild,
@@ -11,9 +12,10 @@ from discord import (
 	NotFound,
 	utils
 )
+
 from .db import is_whitelisted
 
-log = logging.getLogger(__name__)
+log = getLogger(__name__)
 
 def get_punishment(value: int) -> Optional[Literal['stripstaff', 'kick', 'ban']]:
 	"""Get the punishment name from the value

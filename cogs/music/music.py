@@ -1,10 +1,12 @@
-import logging
+from logging import getLogger
 from typing import List
+
 import discord
 from discord.ext import commands
+
 from bot import Sparky
 
-log = logging.getLogger(__name__)
+log = getLogger(__name__)
 
 class Music(commands.Cog):
 	"""Music controls for your server"""

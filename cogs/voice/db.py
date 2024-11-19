@@ -1,4 +1,7 @@
 import json
+from typing import Dict, List, Optional, Tuple
+from logging import getLogger
+
 from aiomysql import DictCursor
 from discord import (
 	Guild,
@@ -6,14 +9,8 @@ from discord import (
 	VoiceChannel,
 	Role,
 )
-from typing import (
-	Dict,
-	List,
-	Optional,
-	Tuple,
-)
+
 from helpers import get_pool
-from logging import getLogger
 
 log = getLogger(__name__)
 

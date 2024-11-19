@@ -4,10 +4,12 @@ import json
 from typing import Literal
 from datetime import datetime, timedelta
 import aiohttp
+from logging import getLogger
+
 from aiomysql import DictCursor
 import discord
 from discord.ext import commands, tasks
-import logging
+
 from bot import Sparky
 from helpers import (
 	Context,
@@ -17,7 +19,7 @@ from helpers import (
 	make_embed_snipe_reaction
 )
 
-log = logging.getLogger(__name__)
+log = getLogger(__name__)
 
 class Snipe(commands.Cog):
 	"""Commands for sniping deleted and edited messages"""

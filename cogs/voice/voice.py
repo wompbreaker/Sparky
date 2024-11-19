@@ -1,13 +1,10 @@
 from typing import Optional
+from logging import getLogger
+
 import discord
 from discord.ext import commands
+
 from bot import Sparky
-import logging
-from .db import *
-from .decorators import *
-from .helper import *
-from .utils import *
-from .interface import *
 from helpers import (
 	Context, 
 	make_embed_info,
@@ -17,10 +14,15 @@ from helpers import (
 	make_embed_visible,
 	make_embed_progress
 )
+from .interface import *
+from .db import *
+from .decorators import *
+from .helper import *
+from .utils import *
 
 SUPPORT_SERVER = "https://discord.gg/8MTyyEUsJb"
 
-log = logging.getLogger(__name__)
+log = getLogger(__name__)
 	
 class Voicemaster(commands.Cog):
 	"""Voice controls for your server"""

@@ -2,19 +2,19 @@ import asyncio
 import random
 from typing import Optional, Union
 from datetime import datetime
+from logging import getLogger
 
 import discord
 from discord.ext import commands
 
 from bot import Sparky
-import logging
 from helpers import (
     Context,
     get_IP_full_info,
     generate_google_maps_link
 )
 
-log = logging.getLogger(__name__)
+log = getLogger(__name__)
 
 class Ping(commands.Cog):
     """Commands for checking the bot's latency and uptime."""

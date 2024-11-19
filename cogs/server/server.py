@@ -1,15 +1,17 @@
+from logging import getLogger
+
 import aiomysql
 import discord
 from discord.ext import commands
+
 from bot import Sparky
-import logging
 from helpers import (
 	Context,
 	make_embed_info
 )
 from .db import check_prefix_exists
 
-log = logging.getLogger(__name__)
+log = getLogger(__name__)
 
 class Server(commands.Cog):
 	"""Commands for server management"""

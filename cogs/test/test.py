@@ -1,10 +1,13 @@
+from logging import getLogger 
+
 import discord
 from discord.ext import commands
-import logging
+
 from bot import Sparky
 from cogs.fun.fun import Fun
 from helpers import Emojis
-log = logging.getLogger(__name__)
+
+log = getLogger(__name__)
 
 class TestView(discord.ui.View):
     def __init__(self, ctx: commands.Context):

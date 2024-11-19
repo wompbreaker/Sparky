@@ -1,7 +1,8 @@
-from aiomysql import DictCursor, Pool
-import logging
+from logging import getLogger
 
-log = logging.getLogger(__name__)
+from aiomysql import DictCursor, Pool
+
+log = getLogger(__name__)
 
 async def check_prefix_exists(pool: Pool, guild_id: int) -> bool:
 	try:

@@ -1,11 +1,11 @@
 import typing
+from logging import getLogger 
 
 import aiomysql
 import discord
 from discord.ext import commands, tasks
 
 from bot import Sparky
-import logging
 from helpers import (
 	Context,
 	make_embed_progress,
@@ -14,7 +14,7 @@ from helpers import (
 	make_embed_mute
 )
 
-log = logging.getLogger(__name__)
+log = getLogger(__name__)
 
 class Mute(commands.Cog):
 	def __init__(self, bot: Sparky):

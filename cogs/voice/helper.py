@@ -1,7 +1,17 @@
-import discord
 from logging import getLogger
-from .decorators import NotVoiceMember
 from typing import Optional, List
+
+from discord import (
+	Guild,
+	Member,
+	utils,
+	PermissionOverwrite,
+	Embed,
+	HTTPException,
+	Color
+)
+
+from .decorators import NotVoiceMember
 from .db import (
 	get_custom_voice_channels,
 	get_custom_voice_channel,
@@ -11,11 +21,11 @@ from .utils import CHECKED, DENY
 
 log = getLogger(__name__)
 
-async def helper_lock_channel(guild: discord.Guild, member: discord.Member) -> bool:
+async def helper_lock_channel(guild: Guild, member: Member) -> bool:
 	voice_channels = guild.voice_channels
-	voice_channel = discord.utils.get(voice_channels, id=member.voice.channel.id)
+	voice_channel = utils.get(voice_channels, id=member.voice.channel.id)
 	if voice_channel is not None:
-		overwrites = discord.PermissionOverwrite(connect=False)
+		overwrites = PermissionOverwrite(connect=False)
 		try:
 			await voice_channel.set_permissions(guild.default_role, overwrite=overwrites)
 			return True
@@ -23,11 +33,11 @@ async def helper_lock_channel(guild: discord.Guild, member: discord.Member) -> b
 			log.error(f"Failed to lock channel: {e}")
 			return False
 		
-async def helper_unlock_channel(guild: discord.Guild, member: discord.Member) -> bool:
+async def helper_unlock_channel(guild: Guild, member: Member) -> bool:
 	voice_channels = guild.voice_channels
-	voice_channel = discord.utils.get(voice_channels, id=member.voice.channel.id)
+	voice_channel = utils.get(voice_channels, id=member.voice.channel.id)
 	if voice_channel is not None:
-		overwrites = discord.PermissionOverwrite(connect=None)
+		overwrites = PermissionOverwrite(connect=None)
 		try:
 			await voice_channel.set_permissions(guild.default_role, overwrite=overwrites)
 			return True
@@ -35,11 +45,11 @@ async def helper_unlock_channel(guild: discord.Guild, member: discord.Member) ->
 			log.error(f"Failed to unlock channel: {e}")
 			return False
 		
-async def helper_ghost_channel(guild: discord.Guild, member: discord.Member) -> bool:
+async def helper_ghost_channel(guild: Guild, member: Member) -> bool:
 	voice_channels = guild.voice_channels
-	voice_channel = discord.utils.get(voice_channels, id=member.voice.channel.id)
+	voice_channel = utils.get(voice_channels, id=member.voice.channel.id)
 	if voice_channel is not None:
-		overwrites = discord.PermissionOverwrite(view_channel=False, connect=False)
+		overwrites = PermissionOverwrite(view_channel=False, connect=False)
 		try:
 			await voice_channel.set_permissions(guild.default_role, overwrite=overwrites)
 			return True
@@ -47,11 +57,11 @@ async def helper_ghost_channel(guild: discord.Guild, member: discord.Member) -> 
 			log.error(f"Failed to ghost channel: {e}")
 			return False
 		
-async def helper_reveal_channel(guild: discord.Guild, member: discord.Member) -> bool:
+async def helper_reveal_channel(guild: Guild, member: Member) -> bool:
 	voice_channels = guild.voice_channels
-	voice_channel = discord.utils.get(voice_channels, id=member.voice.channel.id)
+	voice_channel = utils.get(voice_channels, id=member.voice.channel.id)
 	if voice_channel is not None:
-		overwrites = discord.PermissionOverwrite(view_channel=None, connect=None)
+		overwrites = PermissionOverwrite(view_channel=None, connect=None)
 		try:
 			await voice_channel.set_permissions(guild.default_role, overwrite=overwrites)
 			return True
@@ -60,9 +70,9 @@ async def helper_reveal_channel(guild: discord.Guild, member: discord.Member) ->
 			return False
 
 		
-async def helper_claim_channel(guild: discord.Guild, member: discord.Member) -> Optional[bool]:
+async def helper_claim_channel(guild: Guild, member: Member) -> Optional[bool]:
 	voice_channels = guild.voice_channels
-	voice_channel = discord.utils.get(voice_channels, id=member.voice.channel.id)
+	voice_channel = utils.get(voice_channels, id=member.voice.channel.id)
 	if voice_channel is not None:
 		try:
 			custom_channels = await get_custom_voice_channels(guild)
@@ -81,9 +91,9 @@ async def helper_claim_channel(guild: discord.Guild, member: discord.Member) -> 
 					return True
 	raise NotVoiceMember("You're not connected to a **voice channel**")
 
-async def helper_disconnect_member(guild: discord.Guild, member: discord.Member) -> Optional[List[discord.Member]]:
+async def helper_disconnect_member(guild: Guild, member: Member) -> Optional[List[Member]]:
 	voice_channels = guild.voice_channels
-	voice_channel = discord.utils.get(voice_channels, id=member.voice.channel.id)
+	voice_channel = utils.get(voice_channels, id=member.voice.channel.id)
 	if voice_channel is not None:
 		try:
 			voice_members = voice_channel.members
@@ -93,9 +103,9 @@ async def helper_disconnect_member(guild: discord.Guild, member: discord.Member)
 			return False
 	raise NotVoiceMember("You're not connected to a **voice channel**")
 		
-async def helper_start_activity(guild: discord.Guild, member: discord.Member) -> bool:
+async def helper_start_activity(guild: Guild, member: Member) -> bool:
 	voice_channels = guild.voice_channels
-	voice_channel = discord.utils.get(voice_channels, id=member.voice.channel.id)
+	voice_channel = utils.get(voice_channels, id=member.voice.channel.id)
 	if voice_channel is not None:
 		try:
 			await voice_channel.send("Starting a game...")
@@ -105,25 +115,25 @@ async def helper_start_activity(guild: discord.Guild, member: discord.Member) ->
 			return False
 	raise NotVoiceMember("You're not connected to a **voice channel**")
 		
-async def helper_view_channel(guild: discord.Guild, member: discord.Member) -> Optional[discord.Embed]:
+async def helper_view_channel(guild: Guild, member: Member) -> Optional[Embed]:
 	voice_channels = guild.voice_channels
-	voice_channel = discord.utils.get(voice_channels, id=member.voice.channel.id)
+	voice_channel = utils.get(voice_channels, id=member.voice.channel.id)
 	if voice_channel is not None:
 		try:
 			custom_channel = await get_custom_voice_channel(voice_channel)
 			owner_id = custom_channel['owner_id']
 			owner = guild.get_member(owner_id)
-			connect_permission = voice_channel.overwrites.get(guild.default_role, discord.PermissionOverwrite()).connect
-			visible_permission = voice_channel.overwrites.get(guild.default_role, discord.PermissionOverwrite()).view_channel
+			connect_permission = voice_channel.overwrites.get(guild.default_role, PermissionOverwrite()).connect
+			visible_permission = voice_channel.overwrites.get(guild.default_role, PermissionOverwrite()).view_channel
 			locked_emoji = CHECKED if connect_permission in [False, None] else DENY
 			ghosted_emoji = CHECKED if visible_permission is False else DENY
-			embed = discord.Embed(
+			embed = Embed(
 				title=f"{voice_channel.name}",
-				color=discord.Color(0x747f8d),
+				color=Color(0x747f8d),
 				description=f"**Owner**: {owner.name} (`{owner.id}`)\n"
 							f"**Locked**: {locked_emoji}\n"
 							f"**Ghosted**: {ghosted_emoji}\n"
-							f"**Created**: {discord.utils.format_dt(voice_channel.created_at, 'R')}\n" 
+							f"**Created**: {utils.format_dt(voice_channel.created_at, 'R')}\n" 
 							f"**Bitrate**: {voice_channel.bitrate // 1000} kbps\n"
 							f"**Connected**: `{len(voice_channel.members)}`\n"
 			)
@@ -139,28 +149,28 @@ async def helper_view_channel(guild: discord.Guild, member: discord.Member) -> O
 			return None
 	raise NotVoiceMember("You're not connected to a **voice channel**")
 		
-async def helper_increase_limit(guild: discord.Guild, member: discord.Member) -> Optional[bool]:
+async def helper_increase_limit(guild: Guild, member: Member) -> Optional[bool]:
 	voice_channels = guild.voice_channels
-	voice_channel = discord.utils.get(voice_channels, id=member.voice.channel.id)
+	voice_channel = utils.get(voice_channels, id=member.voice.channel.id)
 	if voice_channel is not None:
 		try:
 			await voice_channel.edit(user_limit=voice_channel.user_limit + 1)
 			return True
-		except discord.HTTPException as e:
+		except HTTPException as e:
 			return False
 		except Exception as e:
 			log.error(f"{type(e)} - Failed to increase limit: {e}")
 			return None
 	raise NotVoiceMember("You're not connected to a **voice channel**")
 		
-async def helper_decrease_limit(guild: discord.Guild, member: discord.Member) -> Optional[bool]:
+async def helper_decrease_limit(guild: Guild, member: Member) -> Optional[bool]:
 	voice_channels = guild.voice_channels
-	voice_channel = discord.utils.get(voice_channels, id=member.voice.channel.id)
+	voice_channel = utils.get(voice_channels, id=member.voice.channel.id)
 	if voice_channel is not None:
 		try:
 			await voice_channel.edit(user_limit=voice_channel.user_limit - 1)
 			return True
-		except discord.HTTPException as e:
+		except HTTPException as e:
 			return False
 		except Exception as e:
 			log.error(f"{type(e)} - Failed to decrease limit: {e}")

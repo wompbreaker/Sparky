@@ -5,8 +5,10 @@
 # See the LICENSE file for more details
 
 from __future__ import annotations
-import logging
+from logging import getLogger
 from collections.abc import Coroutine
+import inspect
+import itertools
 from typing import (
 	TYPE_CHECKING,
 	Any,
@@ -16,6 +18,7 @@ from typing import (
 	Optional,
 	Union
 )
+
 from discord import (
 	ButtonStyle,
 	Interaction,
@@ -46,8 +49,6 @@ from discord.ext.commands import (
 	HelpCommand
 )
 
-import inspect
-import itertools
 from helpers import (
 	Context,
 	SparkyPages,
@@ -58,9 +59,8 @@ from helpers import (
 
 if TYPE_CHECKING:
 	from bot import Sparky
-import logging
 
-log = logging.getLogger(__name__)
+log = getLogger(__name__)
 
 WARNING = Emojis().get_emoji('warning')
 COOLDOWN = Emojis().get_emoji('cooldown')

@@ -6,10 +6,12 @@
 
 from __future__ import annotations
 from typing import Optional, TYPE_CHECKING
-
-from discord.ext import commands
-import discord
 import unicodedata
+from logging import getLogger
+
+import discord
+from discord.ext import commands
+
 from helpers import (
     Context,
     Emojis,
@@ -19,10 +21,8 @@ from .views import InviteView, PaginatedHelpCommand
 
 if TYPE_CHECKING:
     from bot import Sparky
-import logging
 
-# Configure logging
-log = logging.getLogger(__name__)
+log = getLogger(__name__)
 
 WARNING = Emojis().get_emoji('warning')
 COOLDOWN = Emojis().get_emoji('cooldown')

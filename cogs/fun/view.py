@@ -1,14 +1,26 @@
 from typing import Optional, List, Tuple
 import logging
 from io import BytesIO
+
 from aiohttp import ClientSession
 from discord.ext.menus import PageSource, ListPageSource
 from discord import (
-	Embed, Message, File, Color, Interaction, ButtonStyle, Button, GuildSticker
+	Embed, 
+	Message, 
+	File, 
+	Color, 
+	Interaction, 
+	ButtonStyle, 
+	Button, 
+	GuildSticker
 )
 from discord.ui import (
-	View, Item, button, Button
+	View, 
+	Item, 
+	button,
+	Button
 )
+
 from helpers import (
 	Emojis,
 	Context,

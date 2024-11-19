@@ -1,12 +1,14 @@
-from aiomysql import DictCursor
-import logging
 from typing import Any, Dict, List, Optional
+from logging import getLogger
+
+from aiomysql import DictCursor
+
 from helpers import get_pool
 
-log = logging.getLogger(__name__)
+log = getLogger(__name__)
 
 ###############################################################################
-#                                           GETTERS                                                   #
+#                          			GETTERS                                   #
 ############################################################################### 
 
 async def is_unique_tag(guild_id: int, tag: str) -> bool:
@@ -91,7 +93,7 @@ async def get_field(guild_id: int, tag: str, field_name: str) -> Optional[Dict]:
 		log.error(f"An error occurred in {__name__} get_field: {e}")
 
 ###############################################################################
-#                                           SETTERS                                                   #
+#                                SETTERS                                      #
 ############################################################################### 
 
 async def set_embed_component(guild_id: int, tag: str, component: str, value: Any) -> bool:

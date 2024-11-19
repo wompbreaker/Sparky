@@ -1,10 +1,12 @@
+from logging import getLogger
+
 from discord.ui import Select
 from discord import Interaction, Message, Embed, SelectOption
-import logging
-from .modals import *
-from helpers import make_embed_error
 
-log = logging.getLogger(__name__)
+from helpers import make_embed_error
+from .modals import *
+
+log = getLogger(__name__)
 
 class EditFieldSelect(Select):
 	def __init__(self, message: Message, embed: Embed):

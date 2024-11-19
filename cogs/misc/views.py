@@ -1,14 +1,16 @@
 from typing import Any
+
 from discord import Interaction, Message, Embed, ButtonStyle, HTTPException
 from discord.ui import Item, View, Button, button
-from helpers import Context
+
 from bot import Sparky
-from .selects import *
 from helpers import (
+	Context,
 	make_embed_error, 
 	make_embed_warning,
 	make_embed_mute
 )
+from .selects import *
 
 
 DEFAULT_DESCRIPTION = """Use the buttons below to customize this embed. 

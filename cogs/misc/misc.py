@@ -1,14 +1,14 @@
-import logging
+from logging import getLogger
+from typing import Optional
+
 import discord
 from discord.ext import commands
-from typing import Optional
+
+from bot import Sparky
 from helpers import Context, Emojis
 from .views import EmbedView
 
-# if TYPE_CHECKING:
-from bot import Sparky
-
-log = logging.getLogger(__name__)
+log = getLogger(__name__)
 
 DEFAULT_AUTHOR_TEXT = "embed creation"
 DEFAULT_DESCRIPTION = ("Use the buttons below to customize this embed. "

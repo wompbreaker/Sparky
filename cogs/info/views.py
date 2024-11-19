@@ -1,9 +1,9 @@
-from helpers import SparkyPages
 from discord.ext.menus import ListPageSource, PageSource
-from helpers import Context
 from discord import (
 	Embed, Member, Role, Color
 )
+
+from helpers import Context, SparkyPages
 
 class MembersPageSource(ListPageSource):
 	def __init__(self, entries: list[Member], role: Role):

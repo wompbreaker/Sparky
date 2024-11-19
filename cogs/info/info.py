@@ -1,10 +1,10 @@
 import typing
+import logging
 from datetime import datetime
 import os
+
 import discord
 from discord.ext import commands
-from bot import Sparky
-import logging
 
 from helpers import (
 	Context, 
@@ -12,6 +12,7 @@ from helpers import (
 	make_embed_warning,
 	make_embed_info
 )
+from bot import Sparky
 from .views import *
 
 log = logging.getLogger(__name__)

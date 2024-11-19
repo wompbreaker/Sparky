@@ -1,6 +1,7 @@
 import json
 from logging import getLogger
 from typing import Any, Dict, List, Optional, Union
+
 from aiomysql import DictCursor
 from discord import (
 	Guild,
@@ -8,6 +9,7 @@ from discord import (
 	utils,
 	TextChannel
 )
+
 from helpers import get_pool
 
 log = getLogger(__name__)

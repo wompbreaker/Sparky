@@ -1,6 +1,7 @@
 from discord.ext.commands import CheckFailure, check
-from helpers import Context
 from aiomysql import DictCursor
+
+from helpers import Context
 
 class LoggingNotInitialized(CheckFailure):
 	pass

@@ -1,9 +1,9 @@
 import json
 from typing import Literal, Union
+from logging import getLogger
+
 import discord
-import logging
 from discord.ext import commands
-from bot import Sparky
 from discord import (
 	Member, 
 	TextChannel, 
@@ -12,14 +12,13 @@ from discord import (
 	Thread, 
 	VoiceChannel
 )
-from helpers import (
-	Context,
-	Emojis
-)
+
+from bot import Sparky
+from helpers import Context, Emojis
 from .decorators import *
 from .db import *
 
-log = logging.getLogger(__name__)
+log = getLogger(__name__)
 
 class Logs(commands.Cog):
 	"""Logging commands for your server"""

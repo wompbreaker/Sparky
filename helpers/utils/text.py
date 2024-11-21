@@ -5,11 +5,11 @@ import discord
 import pytz
 
 __all__ = (
-	'singular_plural',
-	'return_delta_and_time_dict',
-	'format_timedelta',
-	'check_links',
-	'extract_extension'
+    'singular_plural',
+    'return_delta_and_time_dict',
+    'format_timedelta',
+    'check_links',
+    'extract_extension'
 )
 
 def singular_plural(time_unit: str, value: int) -> str:

@@ -31,17 +31,17 @@ class Logs(commands.Cog):
         return Emojis().get_emoji('scroll')
     
 ###############################################################################
-#                                           LISTENERS                                                 #
+#                               LISTENERS                                     #
 ###############################################################################
         
 ###############################################################################
-#                                           COMMANDS                                                  #
+#                                COMMANDS                                     #
 ###############################################################################
 
     @commands.group(
         name='log',
         aliases=['logging', 'log', 'logs'],
-        usage='Syntax: log [subcommand] <args>\nExample: log add #logs messages',
+        usage="Syntax: log [subcommand] <args>\nExample: log add #logs messages",
         extras={'permissions': ['manage guild']},
         invoke_without_command=True
     )
@@ -92,8 +92,14 @@ class Logs(commands.Cog):
 
     @log.command(
         name='add',
-        usage='Syntax: log add <channel> [event]\nExample: log add #logs messages',
-        extras={'permissions': ['manage guild'], 'information': ['Events: messages, members, roles, \nchannels, invites, emojis and voice']}
+        usage=(
+            "Syntax: log add <channel> [event]\n"
+            "Example: log add #logs messages"
+        ),
+        extras={
+            'permissions': ['manage guild'], 
+            'information': ["Events: messages, members, roles, \nchannels, invites, emojis and voice"]
+        }
     )
     @commands.guild_only()
     @commands.has_permissions(manage_guild=True)
@@ -122,7 +128,7 @@ class Logs(commands.Cog):
 
     @log.command(
         name='ignore',
-        usage='Syntax: log ignore <channel>\nExample: log ignore #logs',
+        usage="Syntax: log ignore <channel>\nExample: log ignore #logs",
         extras={'permissions': ['manage guild'], 'parameters': ['member or channel']}
     )
     @commands.guild_only()
@@ -145,7 +151,11 @@ class Logs(commands.Cog):
                     await ctx.warning("Channel is already being ignored.")
                 else:
                     ignored_channels.append(member_or_channel)
-                    await set_log_property(ctx.guild.id, 'ignored_channels', json.dumps([channel.id for channel in ignored_channels]))
+                    await set_log_property(
+                        ctx.guild.id, 
+                        'ignored_channels', 
+                        json.dumps([channel.id for channel in ignored_channels])
+                    )
                     await ctx.success(f"Channel {member_or_channel.mention} has been ignored.")
             elif isinstance(member_or_channel, Member):
                 ignored_members = await get_ignored_members(ctx.guild)
@@ -153,7 +163,11 @@ class Logs(commands.Cog):
                     await ctx.warning("Member is already being ignored.")
                 else:
                     ignored_members.append(member_or_channel)
-                    await set_log_property(ctx.guild.id, 'ignored_members', json.dumps([member.id for member in ignored_members]))
+                    await set_log_property(
+                        ctx.guild.id,
+                        'ignored_members', 
+                        json.dumps([member.id for member in ignored_members])
+                    )
                     await ctx.success(f"Member {member_or_channel.mention} has been ignored.")
         except Exception as e:
             await ctx.error(f"Failed to ignore member or channel: {e}")

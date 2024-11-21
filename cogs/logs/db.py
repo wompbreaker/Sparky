@@ -14,7 +14,9 @@ from helpers import get_pool
 
 log = getLogger(__name__)
 
-async def get_log_property(guild_id: int, property: str) -> Optional[Union[Dict, List]]:
+async def get_log_property(
+    guild_id: int, property: str
+) -> Optional[Union[Dict, List]]:
     """Get log property for a specific guild"""
     try:
         pool = await get_pool()
@@ -33,7 +35,9 @@ async def get_log_property(guild_id: int, property: str) -> Optional[Union[Dict,
         log.error(f"ERROR: Failed to get log property: {e}")
         return None
     
-async def get_event_channels(guild_id: int, event: str) -> Union[List[int], Dict[str, List[int]]]:
+async def get_event_channels(
+    guild_id: int, event: str
+) -> Union[List[int], Dict[str, List[int]]]:
     """Get event channels for a specific guild"""
     channel_list = []
     try:
@@ -50,7 +54,9 @@ async def get_event_channels(guild_id: int, event: str) -> Union[List[int], Dict
         log.error(f"ERROR: Failed to get event channels: {e}")
         return []
     
-async def check_duplicate_channel(guild_id: int, channel_id: int, event: str) -> bool:
+async def check_duplicate_channel(
+    guild_id: int, channel_id: int, event: str
+) -> bool:
     """Check if channel is already being logged"""
     channel_ids = await get_event_channels(guild_id, event)
     if channel_id in channel_ids:
@@ -65,7 +71,9 @@ async def get_ignored_channels(guild: Guild) -> Optional[List[TextChannel]]:
         ignored_channels = await get_log_property(guild.id, 'ignored_channels')
         if ignored_channels is not None:
             ignored_channels = json.loads(ignored_channels)
-            channel_list = [utils.get(guild.channels, id=channel_id) for channel_id in ignored_channels]
+            channel_list = [
+                utils.get(guild.channels, id=channel_id) for channel_id in ignored_channels
+            ]
         return channel_list
     except Exception as e:
         log.error(f"ERROR: Failed to get ignored channels: {e}")
@@ -85,7 +93,7 @@ async def get_ignored_members(guild: Guild) -> Optional[List[Member]]:
         return []
 
 ###############################################################################
-#                                           SETTERS                                                   #
+#                                   SETTERS                                   #
 ###############################################################################
 
 async def setup_logging(guild_id: int) -> bool:

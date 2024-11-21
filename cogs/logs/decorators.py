@@ -22,7 +22,10 @@ def logging_initialized():
         if result:
             return True
         else:
-            raise LoggingNotInitialized("Logging is **not initialized**. Please run `log setup` to initialize logging.")
+            raise LoggingNotInitialized(
+                "Logging is **not initialized**. "
+                "Please run `log setup` to initialize logging."
+            )
     return check(predicate)
 
 def logging_not_initialized():
@@ -36,7 +39,9 @@ def logging_not_initialized():
                 )
                 result = await cur.fetchone()
         if result:
-            raise LoggingAlreadyInitialized("Logging is already **initialized** in this server.")
+            raise LoggingAlreadyInitialized(
+                "Logging is already **initialized** in this server."
+            )
         else:
             return True
     return check(predicate)

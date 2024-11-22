@@ -333,7 +333,8 @@ class PaginatedHelpCommand(HelpCommand):
                 'cooldown': CooldownMapping.from_cooldown(1, 3.0, BucketType.member),
                 'help': 'Shows help about the bot, a command, or a category',
                 'usage': 'Syntax: help [command|category]\nExample: help ping',
-            }
+            },
+            show_hidden=False
         )
 
     async def on_help_command_error(self, ctx: Context, error: CommandError):
@@ -360,7 +361,7 @@ class PaginatedHelpCommand(HelpCommand):
             cog: Cog = command.cog
             return cog.qualified_name if cog else '\U0010ffff'
 
-        entries: List[Command] = await self.filter_commands(self.context.bot.commands, sort=True, key=key, show_hidden=False)
+        entries: List[Command] = await self.filter_commands(self.context.bot.commands, sort=True, key=key)
 
         all_commands: Dict[Cog, List[Command]] = {}
         for name, children in itertools.groupby(entries, key=key):

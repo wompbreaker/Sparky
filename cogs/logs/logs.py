@@ -98,7 +98,9 @@ class Logs(commands.Cog):
         ),
         extras={
             'permissions': ['manage guild'], 
-            'information': ["Events: messages, members, roles, \nchannels, invites, emojis and voice"]
+            'information': [
+                "Events: messages, members, roles, \nchannels, invites, emojis and voice"
+            ]
         }
     )
     @commands.guild_only()
@@ -108,7 +110,9 @@ class Logs(commands.Cog):
         self, 
         ctx: Context, 
         channel: Union[TextChannel, Thread], 
-        option: Literal['messages', 'members', 'roles', 'channels', 'invites', 'emojis', 'voice'] = None
+        option: Literal[
+            'messages', 'members', 'roles', 'channels', 'invites', 'emojis', 'voice'
+        ] = None
     ):
         """Set up logging in a channel"""
         option = option.lower() if option else 'all'
@@ -121,7 +125,9 @@ class Logs(commands.Cog):
                     message = f"Event `{option}` will be **logged** in {channel.mention}"
                 await ctx.success(message)
             else:
-                await ctx.warning(f"Channel {channel.mention} is already being logged for {option}.")
+                await ctx.warning(
+                    f"Channel {channel.mention} is already being logged for {option}."
+                )
         except Exception as e:
             await ctx.error(f"Failed to add channel for logging: {e}")
         
@@ -137,7 +143,9 @@ class Logs(commands.Cog):
     async def ignore(
         self, 
         ctx: Context, 
-        member_or_channel: Union[Member, TextChannel, StageChannel, CategoryChannel, Thread, VoiceChannel]
+        member_or_channel: Union[
+            Member, TextChannel, StageChannel, CategoryChannel, Thread, VoiceChannel
+        ]
     ):
         """Ignore a member or channel from being logged"""
         try:

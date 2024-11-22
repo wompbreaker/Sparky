@@ -3,6 +3,12 @@ from logging import getLogger
 import json
 
 import discord
+from discord.ui import (
+    Select,
+    View,
+    Button,
+    button
+)
 import requests
 
 from helpers import (
@@ -17,7 +23,7 @@ from .helper import *
 
 log = getLogger(__name__)
 
-class DisconnectSelect(discord.ui.Select):
+class DisconnectSelect(Select):
     def __init__(self, voice_members: List[discord.Member]):
         options = [discord.SelectOption(
             emoji='\N{BUST IN SILHOUETTE}', 
@@ -56,13 +62,13 @@ class DisconnectSelect(discord.ui.Select):
         )
         await interaction.response.send_message(embed=embed, ephemeral=True)
 
-class DisconnectView(discord.ui.View):
+class DisconnectView(View):
     def __init__(self, voice_members: List[discord.Member]):
         super().__init__(timeout=None)
         self.voice_members = voice_members
         self.add_item(DisconnectSelect(voice_members))
 
-class ActivitySelect(discord.ui.Select):
+class ActivitySelect(Select):
     def __init__(self):
         # create a list of options from the ACTIVITIES dictionary
         try:
@@ -115,7 +121,7 @@ class ActivitySelect(discord.ui.Select):
             log.exception(f"Failed to start activity: {e}")
             await interaction.response.send_message("Failed to start the activity", ephemeral=True)
 
-class ActivityView(discord.ui.View):
+class ActivityView(View):
     def __init__(self):
         try:
             super().__init__(timeout=None)
@@ -123,11 +129,11 @@ class ActivityView(discord.ui.View):
         except Exception as e:
             log.exception(f"Failed to create activity view: {e}")
 
-class ActivityInviteButton(discord.ui.Button):
+class ActivityInviteButton(Button):
     def __init__(self, activity_url: str):
         super().__init__(style=discord.ButtonStyle.link, label="Start activity", url=activity_url)
 
-class ActivityInviteView(discord.ui.View):
+class ActivityInviteView(View):
     def __init__(self, activity_url: str):
         try:
             super().__init__(timeout=None)
@@ -135,7 +141,7 @@ class ActivityInviteView(discord.ui.View):
         except Exception as e:
             log.exception(f"Failed to create invite view: {e}")
 
-class InterfaceView(discord.ui.View):
+class InterfaceView(View):
     def __init__(self):
         super().__init__(timeout=None)
     
@@ -195,8 +201,8 @@ class InterfaceView(discord.ui.View):
     # 		embed = make_embed_warning(interaction.user, str(error))
     # 		await interaction.response.send_message(embed=embed, ephemeral=True)
         
-    @discord.ui.button(emoji=LOCK, style=discord.ButtonStyle.gray, row=0)
-    async def lock_button(self, interaction: discord.Interaction, button: discord.ui.Button):
+    @button(emoji=LOCK, style=discord.ButtonStyle.gray, row=0)
+    async def lock_button(self, interaction: discord.Interaction, button: Button):
         # await self.user_is_voice_member(interaction.user)
         # await self.user_is_voice_owner(interaction.user)
         val = await helper_lock_channel(interaction.guild, interaction.user)
@@ -209,8 +215,8 @@ class InterfaceView(discord.ui.View):
             error_embed = make_embed_warning(interaction.user, message)
             await interaction.response.send_message(embed=error_embed, ephemeral=True)
 
-    @discord.ui.button(emoji=UNLOCK, style=discord.ButtonStyle.gray, row=0)
-    async def unlock_button(self, interaction: discord.Interaction, button: discord.ui.Button):
+    @button(emoji=UNLOCK, style=discord.ButtonStyle.gray, row=0)
+    async def unlock_button(self, interaction: discord.Interaction, button: Button):
         # await self.user_is_voice_member(interaction.user)
         # await self.user_is_voice_owner(interaction.user)
         val = await helper_unlock_channel(interaction.guild, interaction.user)
@@ -223,8 +229,8 @@ class InterfaceView(discord.ui.View):
             error_embed = make_embed_warning(interaction.user, message)
             await interaction.response.send_message(embed=error_embed, ephemeral=True)
 
-    @discord.ui.button(emoji=GHOST, style=discord.ButtonStyle.gray, row=0)
-    async def ghost_button(self, interaction: discord.Interaction, button: discord.ui.Button):
+    @button(emoji=GHOST, style=discord.ButtonStyle.gray, row=0)
+    async def ghost_button(self, interaction: discord.Interaction, button: Button):
         # await self.user_is_voice_member(interaction.user)
         # await self.user_is_voice_owner(interaction.user)
         val = await helper_ghost_channel(interaction.guild, interaction.user)
@@ -237,8 +243,8 @@ class InterfaceView(discord.ui.View):
             error_embed = make_embed_warning(interaction.user, message)
             await interaction.response.send_message(embed=error_embed, ephemeral=True)
 
-    @discord.ui.button(emoji=REVEAL, style=discord.ButtonStyle.gray, row=0)
-    async def reveal_button(self, interaction: discord.Interaction, button: discord.ui.Button):
+    @button(emoji=REVEAL, style=discord.ButtonStyle.gray, row=0)
+    async def reveal_button(self, interaction: discord.Interaction, button: Button):
         # await self.user_is_voice_member(interaction.user)
         # await self.user_is_voice_owner(interaction.user)
         val = await helper_reveal_channel(interaction.guild, interaction.user)
@@ -251,8 +257,8 @@ class InterfaceView(discord.ui.View):
             error_embed = make_embed_warning(interaction.user, message)
             await interaction.response.send_message(embed=error_embed, ephemeral=True)
 
-    @discord.ui.button(emoji=CLAIM, style=discord.ButtonStyle.gray, row=0)
-    async def claim_button(self, interaction: discord.Interaction, button: discord.ui.Button):
+    @button(emoji=CLAIM, style=discord.ButtonStyle.gray, row=0)
+    async def claim_button(self, interaction: discord.Interaction, button: Button):
         # await self.user_is_voice_member(interaction.user)
         val = await helper_claim_channel(interaction.guild, interaction.user)
         if val is None:
@@ -268,8 +274,8 @@ class InterfaceView(discord.ui.View):
             warning_embed = make_embed_warning(interaction.user, message)
             await interaction.response.send_message(embed=warning_embed, ephemeral=True)
 
-    @discord.ui.button(emoji=DISCONNECT, style=discord.ButtonStyle.gray, row=1)
-    async def disconnect_button(self, interaction: discord.Interaction, button: discord.ui.Button):
+    @button(emoji=DISCONNECT, style=discord.ButtonStyle.gray, row=1)
+    async def disconnect_button(self, interaction: discord.Interaction, button: Button):
         # await self.user_is_voice_member(interaction.user)
         # await self.user_is_voice_owner(interaction.user)
         voice_members = await helper_disconnect_member(interaction.guild, interaction.user)
@@ -285,8 +291,8 @@ class InterfaceView(discord.ui.View):
             error_embed = make_embed_warning(interaction.user, message)
             await interaction.response.send_message(embed=error_embed, ephemeral=True)
 
-    @discord.ui.button(emoji=START, style=discord.ButtonStyle.gray, row=1)
-    async def start_button(self, interaction: discord.Interaction, button: discord.ui.Button):
+    @button(emoji=START, style=discord.ButtonStyle.gray, row=1)
+    async def start_button(self, interaction: discord.Interaction, button: Button):
         # await self.user_is_voice_member(interaction.user)
         try:
             embed = discord.Embed(
@@ -301,8 +307,8 @@ class InterfaceView(discord.ui.View):
             error_embed = make_embed_warning(interaction.user, message)
             await interaction.response.send_message(embed=error_embed, ephemeral=True)
 
-    @discord.ui.button(emoji=VIEW, style=discord.ButtonStyle.gray, row=1)
-    async def view_button(self, interaction: discord.Interaction, button: discord.ui.Button):
+    @button(emoji=VIEW, style=discord.ButtonStyle.gray, row=1)
+    async def view_button(self, interaction: discord.Interaction, button: Button):
         # await self.user_is_voice_member(interaction.user)
         embed = await helper_view_channel(interaction.guild, interaction.user)
         if embed is not None:
@@ -312,8 +318,8 @@ class InterfaceView(discord.ui.View):
             error_embed = make_embed_warning(interaction.user, message)
             await interaction.response.send_message(embed=error_embed, ephemeral=True)
 
-    @discord.ui.button(emoji=INCREASE, style=discord.ButtonStyle.gray, row=1)
-    async def increase_button(self, interaction: discord.Interaction, button: discord.ui.Button):
+    @button(emoji=INCREASE, style=discord.ButtonStyle.gray, row=1)
+    async def increase_button(self, interaction: discord.Interaction, button: Button):
         # await self.user_is_voice_member(interaction.user)
         # await self.user_is_voice_owner(interaction.user)
         val = await helper_increase_limit(interaction.guild, interaction.user)
@@ -330,8 +336,8 @@ class InterfaceView(discord.ui.View):
             error_embed = make_embed_warning(interaction.user, message)
             await interaction.response.send_message(embed=error_embed, ephemeral=True)
 
-    @discord.ui.button(emoji=DECREASE, style=discord.ButtonStyle.gray, row=1)
-    async def decrease_button(self, interaction: discord.Interaction, button: discord.ui.Button):
+    @button(emoji=DECREASE, style=discord.ButtonStyle.gray, row=1)
+    async def decrease_button(self, interaction: discord.Interaction, button: Button):
         # await self.user_is_voice_member(interaction.user)
         # await self.user_is_voice_owner(interaction.user)
         val = await helper_decrease_limit(interaction.guild, interaction.user)

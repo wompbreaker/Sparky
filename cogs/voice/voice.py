@@ -879,7 +879,7 @@ class Voicemaster(commands.Cog):
             else:
                 icon_url = None
             embed.set_author(name=interface_channel.guild.name, icon_url=icon_url)
-            interface_view = InterfaceView(self.bot)
+            interface_view = InterfaceView()
             await interface_channel.send(embed=embed, view=interface_view)
         except Exception as e:
             log.error(f"Failed to create interface: {e}")

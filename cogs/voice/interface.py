@@ -70,7 +70,6 @@ class DisconnectView(View):
 
 class ActivitySelect(Select):
     def __init__(self):
-        # create a list of options from the ACTIVITIES dictionary
         try:
             options = [discord.SelectOption(
                 emoji=ACTIVITIES[activity]['activity_emoji'], 
@@ -157,7 +156,6 @@ class InterfaceView(View):
                 if voice_channel.id in [custom_channel['channel_id'] for custom_channel in custom_channels]:
                     if user in voice_channel.members:
                         return True
-        # raise NotVoiceMember("You're not connected to a **voice channel**")
     
     async def user_is_voice_owner(self, user: discord.Member) -> bool:
         voice_channels = user.guild.voice_channels
@@ -174,7 +172,6 @@ class InterfaceView(View):
                             owner_id = custom_channel['owner_id']
                             if user.id == owner_id:
                                 return True
-        # raise NotVoiceOwner("You don't own a **voice channel**!")
     
     async def interaction_check(self, interaction: discord.Interaction) -> bool:
         if not await self.user_is_voice_member(interaction.user):
@@ -192,19 +189,9 @@ class InterfaceView(View):
             await interaction.response.send_message(embed=embed, ephemeral=True)
             return False
         return True
-    
-    # async def on_error(self, interaction: discord.Interaction[discord.Client], error: Exception, item: discord.ui.Item[Any]) -> None:
-    # 	if isinstance(error, NotVoiceMember):
-    # 		embed = make_embed_warning(interaction.user, str(error))
-    # 		await interaction.response.send_message(embed=embed, ephemeral=True)
-    # 	elif isinstance(error, NotVoiceOwner):
-    # 		embed = make_embed_warning(interaction.user, str(error))
-    # 		await interaction.response.send_message(embed=embed, ephemeral=True)
         
     @button(emoji=LOCK, style=discord.ButtonStyle.gray, row=0)
     async def lock_button(self, interaction: discord.Interaction, button: Button):
-        # await self.user_is_voice_member(interaction.user)
-        # await self.user_is_voice_owner(interaction.user)
         val = await helper_lock_channel(interaction.guild, interaction.user)
         if val:
             message = "Your **voice channel** is now **locked**"
@@ -217,8 +204,6 @@ class InterfaceView(View):
 
     @button(emoji=UNLOCK, style=discord.ButtonStyle.gray, row=0)
     async def unlock_button(self, interaction: discord.Interaction, button: Button):
-        # await self.user_is_voice_member(interaction.user)
-        # await self.user_is_voice_owner(interaction.user)
         val = await helper_unlock_channel(interaction.guild, interaction.user)
         if val:
             message = "Your **voice channel** is now **unlocked**"
@@ -231,8 +216,6 @@ class InterfaceView(View):
 
     @button(emoji=GHOST, style=discord.ButtonStyle.gray, row=0)
     async def ghost_button(self, interaction: discord.Interaction, button: Button):
-        # await self.user_is_voice_member(interaction.user)
-        # await self.user_is_voice_owner(interaction.user)
         val = await helper_ghost_channel(interaction.guild, interaction.user)
         if val:
             message = "Your **voice channel** is now **ghosted**"
@@ -245,8 +228,6 @@ class InterfaceView(View):
 
     @button(emoji=REVEAL, style=discord.ButtonStyle.gray, row=0)
     async def reveal_button(self, interaction: discord.Interaction, button: Button):
-        # await self.user_is_voice_member(interaction.user)
-        # await self.user_is_voice_owner(interaction.user)
         val = await helper_reveal_channel(interaction.guild, interaction.user)
         if val:
             message = "Your **voice channel** is now **visible**"
@@ -259,7 +240,6 @@ class InterfaceView(View):
 
     @button(emoji=CLAIM, style=discord.ButtonStyle.gray, row=0)
     async def claim_button(self, interaction: discord.Interaction, button: Button):
-        # await self.user_is_voice_member(interaction.user)
         val = await helper_claim_channel(interaction.guild, interaction.user)
         if val is None:
             message = "You can't claim this **voice channel** - the owner is still active here"
@@ -276,8 +256,6 @@ class InterfaceView(View):
 
     @button(emoji=DISCONNECT, style=discord.ButtonStyle.gray, row=1)
     async def disconnect_button(self, interaction: discord.Interaction, button: Button):
-        # await self.user_is_voice_member(interaction.user)
-        # await self.user_is_voice_owner(interaction.user)
         voice_members = await helper_disconnect_member(interaction.guild, interaction.user)
         if voice_members:
             embed = discord.Embed(
@@ -293,7 +271,6 @@ class InterfaceView(View):
 
     @button(emoji=START, style=discord.ButtonStyle.gray, row=1)
     async def start_button(self, interaction: discord.Interaction, button: Button):
-        # await self.user_is_voice_member(interaction.user)
         try:
             embed = discord.Embed(
                 description=f"<{START}> {interaction.user.mention} Select an **activity** from the **dropdown** to start!",
@@ -309,7 +286,6 @@ class InterfaceView(View):
 
     @button(emoji=VIEW, style=discord.ButtonStyle.gray, row=1)
     async def view_button(self, interaction: discord.Interaction, button: Button):
-        # await self.user_is_voice_member(interaction.user)
         embed = await helper_view_channel(interaction.guild, interaction.user)
         if embed is not None:
             await interaction.response.send_message(embed=embed, ephemeral=True)
@@ -320,8 +296,6 @@ class InterfaceView(View):
 
     @button(emoji=INCREASE, style=discord.ButtonStyle.gray, row=1)
     async def increase_button(self, interaction: discord.Interaction, button: Button):
-        # await self.user_is_voice_member(interaction.user)
-        # await self.user_is_voice_owner(interaction.user)
         val = await helper_increase_limit(interaction.guild, interaction.user)
         if val:
             message = f"Your **voice channel**'s limit changed to `{interaction.user.voice.channel.user_limit}`"
@@ -338,8 +312,6 @@ class InterfaceView(View):
 
     @button(emoji=DECREASE, style=discord.ButtonStyle.gray, row=1)
     async def decrease_button(self, interaction: discord.Interaction, button: Button):
-        # await self.user_is_voice_member(interaction.user)
-        # await self.user_is_voice_owner(interaction.user)
         val = await helper_decrease_limit(interaction.guild, interaction.user)
         if val:
             message = f"Your **voice channel**'s limit changed to `{interaction.user.voice.channel.user_limit}`"

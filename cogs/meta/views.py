@@ -360,7 +360,7 @@ class PaginatedHelpCommand(HelpCommand):
             cog: Cog = command.cog
             return cog.qualified_name if cog else '\U0010ffff'
 
-        entries: List[Command] = await self.filter_commands(self.context.bot.commands, sort=True, key=key)
+        entries: List[Command] = await self.filter_commands(self.context.bot.commands, sort=True, key=key, show_hidden=False)
 
         all_commands: Dict[Cog, List[Command]] = {}
         for name, children in itertools.groupby(entries, key=key):
@@ -440,9 +440,13 @@ class PaginatedHelpCommand(HelpCommand):
     async def send_group_help(self, group: Group):
         all_commands = [group]
         for command in group.walk_commands():
+            if command.hidden:
+                continue
             all_commands.append(command)
         entries = all_commands
         if len(entries) == 0:
+            return
+        if len(entries) == 1:
             return await self.send_command_help(group)
 
         source = GroupHelpPageSource(group, entries, prefix=self.context.clean_prefix)

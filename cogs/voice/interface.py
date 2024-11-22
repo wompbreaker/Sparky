@@ -219,7 +219,7 @@ class InterfaceView(View):
         val = await helper_ghost_channel(interaction.guild, interaction.user)
         if val:
             message = "Your **voice channel** is now **ghosted**"
-            embed = make_embed_visible(interaction.user, False, message)
+            embed = make_embed_visible(interaction.user, True, message)
             await interaction.response.send_message(embed=embed, ephemeral=True)
         else:
             message = "Failed to **hide** the **voice channel**"
@@ -231,7 +231,7 @@ class InterfaceView(View):
         val = await helper_reveal_channel(interaction.guild, interaction.user)
         if val:
             message = "Your **voice channel** is now **visible**"
-            embed = make_embed_visible(interaction.user, True, message)
+            embed = make_embed_visible(interaction.user, False, message)
             await interaction.response.send_message(embed=embed, ephemeral=True)
         else:
             message = "Failed to **reveal** the **voice channel**"

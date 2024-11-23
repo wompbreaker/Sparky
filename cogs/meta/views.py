@@ -380,7 +380,7 @@ class PaginatedHelpCommand(HelpCommand):
         await self.send_bot_help(cog)
 
     async def send_command_help(self, command: Command):
-        if command.hidden:
+        if command.hidden and self.context.author.id != self.context.bot.owner_id:
             return
         
         embed = Embed(
@@ -390,7 +390,7 @@ class PaginatedHelpCommand(HelpCommand):
         embed.set_author(name=author.display_name, icon_url=author.display_avatar.url)
         embed.set_footer(text=f'Page 1/1 (1 entry) ∙ Module: {command.cog_name.lower()}')
 
-        if not command.hidden:
+        if not command.hidden or self.context.author.id == self.context.bot.owner_id:
             permissions: List[str] = command.extras.get('permissions', [])
             information: Dict[str, Any] = command.extras.get('information', {})
             parameters: List[str] = command.extras.get('parameters', [])
